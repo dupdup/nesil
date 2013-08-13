@@ -1,13 +1,31 @@
 $(function () {
-	
-    $('#container').highcharts({
+	$.ajax({url:"/",success:function(result){
+	    var t=[];
+	    $.each(result[4].answer, function(index, v) {
+	      t.push({name:v.text,y:v.count})        
+	      });
+	for(var i=1; i<4; i++){
+		var id="#container"+i;	
+    $(id).highcharts({
         chart: {
-            plotBackgroundColor: null,
-            plotBorderWidth: null,
-            plotShadow: false
+//            plotBackgroundColor: null,
+//            plotBorderWidth: null,
+//            plotShadow: false,
+            // Edit chart spacing
+            spacingBottom: 1,
+            spacingTop: 1,
+            spacingLeft: 1,
+            spacingRight: 1,
+            marginRight:1,
+    		marginLeft:1,
+    		marginTop:1,
+    		marginBottom:1,
+    		width: 400,
+    		height: 400
+
         },
         title: {
-            text: 'Browser market shares at a specific website, 2010'
+            text: 'Adana Büyükşehir Belediyesinin hizmetlerinden memnun olmanızın başlıca nedenleri nelerdir?'
         },
         tooltip: {
     	    pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>'
@@ -27,30 +45,9 @@ $(function () {
         series: [{
             type: 'pie',
             name: 'Browser share',
-            data: [
-                ['Firefox',   75.0],
-                ['IE',       26.8],
-                {
-                    name: 'Chrome',
-                    y: 12.8,
-                    sliced: true,
-                    selected: true
-                },
-                ['Safari',    8.5],
-                ['Opera',     6.2],
-                ['Others',   0.7]
-            ]
+            data: t
         }]
     });
-
-    $.ajax({url:"/",success:function(result){
-      var t=[];
-      $.each(result[4].answer, function(index, v) {
-        t.push({name:v.text,y:v.count})        
-        });
-      console.log(t);
-    $("#container").highcharts().series[0].setData(t);
-    }});
-
+	}
+	  }});
 });
-    
