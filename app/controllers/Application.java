@@ -11,6 +11,7 @@ import model.AnswerJSON;
 import model.Nesil;
 import model.QuestionJSON;
 import model.Tuple;
+import play.cache.Cache;
 import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
@@ -41,12 +42,15 @@ public class Application extends Controller {
 	
 	public static Result index() throws RemoteException, ServiceException {
 		ExportService service = new ExportServiceLocator();
-
-		Survey survey = service.getExportServiceSoap().exportSurvey("01f3e767b", "88ff56b59f");
-		Screen[] screens= survey.getScreens();
-		SurveyResult[] results = service.getExportServiceSoap().exportSurveyResults("01f3e767b", "88ff56b59f" ,"2013-06-08 16:24:42","2013-06-08 23:24:42",0l);
-		List<QuestionJSON> list = toJsonFormat(screens,results);
-		return ok(Json.toJson(list));
+		List<QuestionJSON> cached = (List<QuestionJSON>) Cache.get("manisa");
+		if(cached==null||cached.size()<1){
+			Survey survey = service.getExportServiceSoap().exportSurvey("01f3e767b", "88ff56b59f");
+			Screen[] screens= survey.getScreens();
+			SurveyResult[] results = service.getExportServiceSoap().exportSurveyResults("01f3e767b", "88ff56b59f" ,"2013-06-08 16:24:42","2013-06-08 23:24:42",0l);
+			cached = toJsonFormat(screens,results);
+			Cache.set("manisa", cached);
+		}
+		return ok(Json.toJson(cached));
 	}
 	
 	private static List<QuestionJSON> toJsonFormat(Screen[] screens, SurveyResult[] results) {
