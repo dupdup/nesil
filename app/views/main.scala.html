@@ -17,17 +17,4 @@
 	@content
 	<div id ="container" style="background-color: black; margin: 0 auto 0 auto">
 	</div>
-	<script type="text/javascript">
- 	$("#container").html(""); 
- 	var divList = "";
-
- 	for(var i=1; i<4; i++){ 
- 		console.log("handan each" + i); 
- 		var tblRow ="<div id=\"container"+i+"\" style=\"margin: 0 auto; float: left\"></div>"
- 		console.log(tblRow); 
- 		divList += tblRow; 
- 		$("#container").html(divList);
-  }
-	</script>
-
 </body>

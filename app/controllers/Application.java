@@ -4,6 +4,7 @@ import java.rmi.RemoteException;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import javax.xml.rpc.ServiceException;
 
@@ -24,6 +25,66 @@ import com.isurveysoft.www.servicesv5.Survey;
 import com.isurveysoft.www.servicesv5.SurveyResult;
 
 public class Application extends Controller {
+	/*
+	 * 1- piechart
+	 * 2- barchart*/
+	private int[] types = new int[]{1,2};
+	private static Map<Long, Integer> chartAdana = new HashMap<Long, Integer>();
+	private static Map<Long, Integer> tanimAdana = new HashMap<Long, Integer>();
+	
+	static{
+		//tanımlayıcı sorularda tip gereksinimi ilerde olabilir diye bu fieldi yarattik. Şimdilik hepsi 1 olacak.
+		tanimAdana.put(416878l, 1);
+		tanimAdana.put(416881l, 1);
+		tanimAdana.put(416960l, 1);
+		tanimAdana.put(416980l, 1);
+		tanimAdana.put(416984l, 1);
+		tanimAdana.put(416985l, 1);
+		tanimAdana.put(416986l, 1);
+		tanimAdana.put(416987l, 1);
+		tanimAdana.put(416990l, 1);
+		tanimAdana.put(416991l, 1);
+		tanimAdana.put(416995l, 1);
+		tanimAdana.put(416997l, 1);
+		tanimAdana.put(416998l, 1);
+		tanimAdana.put(416999l, 1);
+		tanimAdana.put(417000l, 1);
+		tanimAdana.put(417001l, 1);
+		tanimAdana.put(417002l, 1);
+		tanimAdana.put(417003l, 1); //bina ya da daire fotoğrafı
+		tanimAdana.put(416780l, 1); //anketimiz tamamlanmıştır
+
+		
+		
+		
+		chartAdana.put(416902l, 1);
+		chartAdana.put(416919l, 1);
+		chartAdana.put(416949l, 1);
+		chartAdana.put(416955l, 1);
+		chartAdana.put(416965l, 1);
+		chartAdana.put(416968l, 1);
+		chartAdana.put(416969l, 1);
+		chartAdana.put(416970l, 1);
+		chartAdana.put(416972l, 1);
+		chartAdana.put(416974l, 1);
+		chartAdana.put(416978l, 1);
+		chartAdana.put(416981l, 1);
+		chartAdana.put(416988l, 1);
+		chartAdana.put(416989l, 1);
+		chartAdana.put(416993l, 1);
+		
+		chartAdana.put(416920l, 2);
+		chartAdana.put(416943l, 2);
+		chartAdana.put(416908l, 2);
+		chartAdana.put(416911l, 2);
+		chartAdana.put(416952l, 2);
+		chartAdana.put(416963l, 2);
+		chartAdana.put(416966l, 2);
+		chartAdana.put(416992l, 2);
+		chartAdana.put(416994l, 2);
+		
+	}
+	
 	public static Result wsdl() throws RemoteException, ServiceException {
 		ExportService service = new ExportServiceLocator();
 		Survey survey = service.getExportServiceSoap().exportSurvey("01f3e767b", "88ff56b59f");
@@ -67,9 +128,12 @@ public class Application extends Controller {
 			}
 		}
 		for (Screen screen : screens) {
+			//şimdilik sadece pie chartlar
+			if(chartAdana.containsKey(screen.getScreenId())){
 			QuestionJSON que = new QuestionJSON();
 			que.setText(screen.getScreenText());
-			que.setType("select".equals(screen.getType())?1:2);
+			que.setType(chartAdana.get(screen.getScreenId()));
+			//que.setType("select".equals(screen.getType())?1:2);
 			LinkedList<AnswerJSON> ansList = new LinkedList<AnswerJSON>();
 			HashMap<Long, String> ansTextMap = new HashMap<Long, String>();
 			for(Answer answer : screen.getAnswers()){
@@ -87,6 +151,7 @@ public class Application extends Controller {
 			}
 			que.setAnswer(ansList);
 			list.add(que);
+			}
 		}
 		return list;
 	}
