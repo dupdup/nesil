@@ -5,7 +5,7 @@ $(function () {
 	 	var divList = "";
 
 	 	for(var i=0; i<chartCount; i++){ 
-	 		var tblRow ="<div id=\"container"+i+"\" style=\"margin: 0 auto; float: left\"></div>"
+	 		var tblRow ="<div id=\"container"+i+"\" class=\"page-chart\" style=\"margin: 0 auto; float: left\"></div>"
 	 		divList += tblRow; 
 	 		$("#container").html(divList);
 	  }
