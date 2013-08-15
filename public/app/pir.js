@@ -24,6 +24,7 @@ $(function () {
 	    	else{
 	    		$(id).highcharts({
 	        chart: {
+	        	lineWidth:1,
 	            spacingBottom: 1,
 	            spacingTop: 1,
 	            spacingLeft: 1,
@@ -58,7 +59,7 @@ $(function () {
 	        },
 	        series: [{
 	            type: 'pie',
-	            name: 'Browser share',
+	            name: 'Cevap Sayısı',
 	            data: t
 	        }]
 	    });
@@ -140,10 +141,7 @@ function createGrid(id, result){
     for (var i = 0; i < t.length; ++i) {
         sum += t[i].y;
     }
-    
-    ExampleData.results = t;
  	$(id).html(""); 
- 	console.log(ExampleData.results);
  	var table = "grid";
  		var tblRow ="<table id=\""+table+"\" class=\"grid\" style=\"width:400px; height:400px; overflow: auto; display:block;\"> <thead> <tr> <th>Cevaplar</th> <th>Kisi Sayisi</th> <th>Yüzde%</th> </tr> ";
  		for(var i=0; i<t.length; i++){

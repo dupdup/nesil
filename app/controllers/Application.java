@@ -1,6 +1,11 @@
 package controllers;
 
 import java.rmi.RemoteException;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -23,67 +28,17 @@ import com.isurveysoft.www.servicesv5.ExportServiceLocator;
 import com.isurveysoft.www.servicesv5.Screen;
 import com.isurveysoft.www.servicesv5.Survey;
 import com.isurveysoft.www.servicesv5.SurveyResult;
+import play.db.*;
 
 public class Application extends Controller {
 	/*
 	 * 1- piechart
 	 * 2- barchart*/
 	private int[] types = new int[]{1,2};
-	private static Map<Long, Integer> chartAdana = new HashMap<Long, Integer>();
-	private static Map<Long, Integer> tanimAdana = new HashMap<Long, Integer>();
-	
-	static{
-		//tanımlayıcı sorularda tip gereksinimi ilerde olabilir diye bu fieldi yarattik. Şimdilik hepsi 1 olacak.
-		tanimAdana.put(416878l, 1);
-		tanimAdana.put(416881l, 1);
-		tanimAdana.put(416960l, 1);
-		tanimAdana.put(416980l, 1);
-		tanimAdana.put(416984l, 1);
-		tanimAdana.put(416985l, 1);
-		tanimAdana.put(416986l, 1);
-		tanimAdana.put(416987l, 1);
-		tanimAdana.put(416990l, 1);
-		tanimAdana.put(416991l, 1);
-		tanimAdana.put(416995l, 1);
-		tanimAdana.put(416997l, 1);
-		tanimAdana.put(416998l, 1);
-		tanimAdana.put(416999l, 1);
-		tanimAdana.put(417000l, 1);
-		tanimAdana.put(417001l, 1);
-		tanimAdana.put(417002l, 1);
-		tanimAdana.put(417003l, 1); //bina ya da daire fotoğrafı
-		tanimAdana.put(416780l, 1); //anketimiz tamamlanmıştır
-
-		
-		
-		
-		chartAdana.put(416902l, 1);
-		chartAdana.put(416919l, 1);
-		chartAdana.put(416949l, 1);
-		chartAdana.put(416955l, 1);
-		chartAdana.put(416965l, 1);
-		chartAdana.put(416968l, 1);
-		chartAdana.put(416969l, 1);
-		chartAdana.put(416970l, 1);
-		chartAdana.put(416972l, 1);
-		chartAdana.put(416974l, 1);
-		chartAdana.put(416978l, 1);
-		chartAdana.put(416981l, 1);
-		chartAdana.put(416988l, 1);
-		chartAdana.put(416989l, 1);
-		chartAdana.put(416993l, 1);
-		
-		chartAdana.put(416920l, 2);
-		chartAdana.put(416943l, 2);
-		chartAdana.put(416908l, 2);
-		chartAdana.put(416911l, 2);
-		chartAdana.put(416952l, 2);
-		chartAdana.put(416963l, 2);
-		chartAdana.put(416966l, 2);
-		chartAdana.put(416992l, 2);
-		chartAdana.put(416994l, 2);
-		
-	}
+	private static Map<Long, Integer> chartQuestions = new HashMap<Long, Integer>();
+	private static Map<Long, Integer> descQuestions = new HashMap<Long, Integer>();
+	private static int user =	1;
+	private static String surveyPin;
 	
 	public static Result wsdl() throws RemoteException, ServiceException {
 		ExportService service = new ExportServiceLocator();
@@ -97,23 +52,22 @@ public class Application extends Controller {
 	public static Result ans() throws RemoteException, ServiceException {
 		ExportService service = new ExportServiceLocator();
 		SurveyResult[] results = service.getExportServiceSoap().exportSurveyResults("01f3e767b", "88ff56b59f" ,"2013-06-07 16:24:42","2013-06-08 23:24:42",0l);
-		
 		return ok(Json.toJson(results));
-		}
-	
+	}
+
 	public static Result index() throws RemoteException, ServiceException {
 		ExportService service = new ExportServiceLocator();
-		List<QuestionJSON> cached = (List<QuestionJSON>) Cache.get("manisa");
+		List<QuestionJSON> cached = (List<QuestionJSON>) Cache.get(user+"");
 		if(cached==null||cached.size()<1){
-			Survey survey = service.getExportServiceSoap().exportSurvey("01f3e767b", "88ff56b59f");
+			Survey survey = service.getExportServiceSoap().exportSurvey("01f3e767b", surveyPin);
 			Screen[] screens= survey.getScreens();
-			SurveyResult[] results = service.getExportServiceSoap().exportSurveyResults("01f3e767b", "88ff56b59f" ,"2013-06-07 16:24:42","2013-06-08 23:24:42",0l);
+			SurveyResult[] results = service.getExportServiceSoap().exportSurveyResults("01f3e767b", surveyPin ,"2013-06-07 16:24:42","2013-06-08 23:24:42",0l);
 			cached = toJsonFormat(screens,results);
-			Cache.set("manisa", cached);
+			Cache.set(user+"", cached);
 		}
 		return ok(Json.toJson(cached));
 	}
-	
+
 	private static List<QuestionJSON> toJsonFormat(Screen[] screens, SurveyResult[] results) {
 		List<QuestionJSON> list = new LinkedList<QuestionJSON>();
 		HashMap<Tuple<Long, Long>, Integer> ansMap = new HashMap<Tuple<Long, Long>, Integer>();
@@ -129,34 +83,48 @@ public class Application extends Controller {
 		}
 		for (Screen screen : screens) {
 			//şimdilik sadece pie chartlar
-			if(chartAdana.containsKey(screen.getScreenId())){
-			QuestionJSON que = new QuestionJSON();
-			que.setText(screen.getScreenText());
-			que.setType(chartAdana.get(screen.getScreenId()));
-			//que.setType("select".equals(screen.getType())?1:2);
-			LinkedList<AnswerJSON> ansList = new LinkedList<AnswerJSON>();
-			HashMap<Long, String> ansTextMap = new HashMap<Long, String>();
-			for(Answer answer : screen.getAnswers()){
-				ansTextMap.put(answer.getAnswerId(), answer.getAnswerText());
-			}
-			for(Long x : ansTextMap.keySet()){
-				Tuple<Long, Long> key = new Tuple<Long,Long>(screen.getScreenId(),x);
-				AnswerJSON ans = new AnswerJSON();
-				ans.setCode(x);
-				ans.setText(ansTextMap.get(x));
-				Integer count = ansMap.get(key);
-				ans.setCount(count==null?0:count);
-				if(count!=null)
-					ansList.add(ans);
-			}
-			que.setAnswer(ansList);
-			list.add(que);
+			if(chartQuestions.containsKey(screen.getScreenId())){
+				QuestionJSON que = new QuestionJSON();
+				que.setText(screen.getScreenText());
+				que.setType(chartQuestions.get(screen.getScreenId()));
+				//que.setType("select".equals(screen.getType())?1:2);
+				LinkedList<AnswerJSON> ansList = new LinkedList<AnswerJSON>();
+				HashMap<Long, String> ansTextMap = new HashMap<Long, String>();
+				for(Answer answer : screen.getAnswers()){
+					ansTextMap.put(answer.getAnswerId(), answer.getAnswerText());
+				}
+				for(Long x : ansTextMap.keySet()){
+					Tuple<Long, Long> key = new Tuple<Long,Long>(screen.getScreenId(),x);
+					AnswerJSON ans = new AnswerJSON();
+					ans.setCode(x);
+					ans.setText(ansTextMap.get(x));
+					Integer count = ansMap.get(key);
+					ans.setCount(count==null?0:count);
+					if(count!=null)
+						ansList.add(ans);
+				}
+				que.setAnswer(ansList);
+				list.add(que);
 			}
 		}
 		return list;
 	}
-	public static Result nesil() {
-		return ok(Json.toJson(new Nesil("ggg")));
+	public static Result nesil() throws SQLException {
+		Statement st = DB.getConnection().createStatement();
+		ResultSet rs = st.executeQuery("select pin,s.id from user u,survey s where s.id = u.surveyid and u.id = "+user);
+		rs.next();
+		surveyPin = rs.getString(1);
+		int surveyId = rs.getInt(2);
+		st = DB.getConnection().createStatement();
+		rs = st.executeQuery("select q.screenid,q.quetype,q.charttype from survey s, question q where q.surveyid = "+surveyId);
+		while(rs.next()){
+			if(rs.getInt(2)==2){
+				chartQuestions.put(rs.getLong(1), rs.getInt(3));
+			}else if(rs.getInt(2)==1){
+				descQuestions.put(rs.getLong(1), rs.getInt(3));
+			}
+		}
+		return ok(Json.toJson(chartQuestions));
 	}
 
 }
