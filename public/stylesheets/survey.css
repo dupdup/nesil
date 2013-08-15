@@ -97,17 +97,33 @@ blockquote {
 	color: #A89A6A;
 }
 
+grid{
+	position: relative;
+	clear: both;
+	float: center;	
+	width: 400px;
+	height:400px;	
+	padding: 0; 	
+	background: #E8E8E8;	
+	border-bottom: 2px solid #D0D0D0;
+	display: inline;
+	z-index:-1;
+	margin: 0 auto 0 auto;
+}
+td_grid {
+	text-align:left;
+	border-left: 1px solid #E8E8E8;
+	border-bottom: 1px solid #DFDFDF;
+}
 
 /* start - table */
 table {
 	border-collapse: collapse;
-	margin: 10px;	
 }
 th strong {
 	color: #fff;
 }
 th {
-	background: #93BC0C url(nav.jpg) repeat-x;
 	height: 29px;
 	padding-left: 12px;
 	padding-right: 12px;
@@ -161,15 +177,6 @@ textarea {
 	height:100px;
 	display:block;
 	color:#777;
-}
-input.button { 
-	font: bold 12px Arial, Sans-serif; 
-	height: 24px;
-	margin: 0;
-	padding: 2px 3px; 
-	color: #FFF;
-	background: #8EB50C url(nav.jpg) repeat-x 0 0;
-	border: none;
 }
 
 /* search form */

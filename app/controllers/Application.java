@@ -96,7 +96,7 @@ public class Application extends Controller {
 	}	
 	public static Result ans() throws RemoteException, ServiceException {
 		ExportService service = new ExportServiceLocator();
-		SurveyResult[] results = service.getExportServiceSoap().exportSurveyResults("01f3e767b", "88ff56b59f" ,"2013-06-08 16:24:42","2013-06-08 23:24:42",0l);
+		SurveyResult[] results = service.getExportServiceSoap().exportSurveyResults("01f3e767b", "88ff56b59f" ,"2013-06-07 16:24:42","2013-06-08 23:24:42",0l);
 		
 		return ok(Json.toJson(results));
 		}
@@ -107,7 +107,7 @@ public class Application extends Controller {
 		if(cached==null||cached.size()<1){
 			Survey survey = service.getExportServiceSoap().exportSurvey("01f3e767b", "88ff56b59f");
 			Screen[] screens= survey.getScreens();
-			SurveyResult[] results = service.getExportServiceSoap().exportSurveyResults("01f3e767b", "88ff56b59f" ,"2013-06-08 16:24:42","2013-06-08 23:24:42",0l);
+			SurveyResult[] results = service.getExportServiceSoap().exportSurveyResults("01f3e767b", "88ff56b59f" ,"2013-06-07 16:24:42","2013-06-08 23:24:42",0l);
 			cached = toJsonFormat(screens,results);
 			Cache.set("manisa", cached);
 		}
