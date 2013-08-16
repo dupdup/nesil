@@ -34,6 +34,8 @@ public class Application extends Controller {
 	private static String user;
 	private static String surveyPin;
 	private static String surveyCP;
+	private static int surveyMainLocId;
+	private static int surveyMainLocType;
 
 	public static Result wsdl() throws RemoteException, ServiceException {
 		ExportService service = new ExportServiceLocator();
@@ -108,10 +110,12 @@ public class Application extends Controller {
 	public static Result nesil(String userId) throws SQLException {
 		user=userId;
 		Statement st = DB.getConnection().createStatement();
-		ResultSet rs = st.executeQuery("select pin,s.id,s.cp from user u,survey s where s.id = u.surveyid and u.code = '"+user+"'");
+		ResultSet rs = st.executeQuery("select s.pin,s.id,s.cp,s.locid,s.loctype from user u,survey s where s.usercode = u.code and u.code = '"+user+"'");
 		rs.next();
 		surveyPin = rs.getString(1);
 		surveyCP = rs.getString(3);
+		surveyMainLocId = rs.getInt(4);
+		surveyMainLocType = rs.getInt(5);
 		int surveyId = rs.getInt(2);
 		st = DB.getConnection().createStatement();
 		rs = st.executeQuery("select q.screenid,q.quetype,q.charttype from survey s, question q where q.surveyid = "+surveyId);
@@ -124,8 +128,14 @@ public class Application extends Controller {
 		}
 		return survey();
 	}
-	public static Result getDistricts(int city,int townid){
-		return ok ();
+	public static Result getDistricts(int city,int townid) throws SQLException{
+		Statement st = DB.getConnection().createStatement();
+		ResultSet rs = st.executeQuery("select id,name from district where townid ="+townid);
+		List<AddressJSON> l = new LinkedList<AddressJSON>();
+		while(rs.next()){
+			l.add(new AddressJSON(rs.getString(2),rs.getInt(1)));
+		}
+		return ok();
 	}
 	public static Result getTowns(int city) throws SQLException{
 		Statement st = DB.getConnection().createStatement();
