@@ -3,11 +3,13 @@
 # ~~~~
 
 # Home page
-GET     /nesil/:id                           controllers.Application.nesil(id:String)
+GET     /nesil/:id                      controllers.Application.nesil(id:String)
 GET     /wsdl                           controllers.Application.wsdl()
-GET     /ans                           controllers.Application.ans()
-GET     /                           controllers.Application.index()
-GET     /survey                           controllers.Application.survey()
+GET     /ans                           	controllers.Application.ans()
+GET     /results                        controllers.Application.results()
+GET     /survey                         controllers.Application.survey()
+GET		/area/:city					controllers.Application.getTowns(city:Int)
+GET		/area/:city/:townid			controllers.Application.getDistricts(city:Int,townid:Int)
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.at(path="/public", file)

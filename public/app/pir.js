@@ -1,5 +1,5 @@
 $(function () {
-	$.ajax({url:"/",success:function(results){
+	$.ajax({url:"/results",success:function(results){
 	    chartCount = results.length;
 	 	$("#container").html(""); 
 	 	var divList = "";

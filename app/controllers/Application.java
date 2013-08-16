@@ -11,15 +11,15 @@ import java.util.Map;
 
 import javax.xml.rpc.ServiceException;
 
+import model.AddressJSON;
 import model.AnswerJSON;
 import model.QuestionJSON;
 import model.Tuple;
 import play.cache.Cache;
 import play.db.DB;
 import play.libs.Json;
-import play.*;
-import play.data.*;
-import play.mvc.*;
+import play.mvc.Controller;
+import play.mvc.Result;
 
 import com.isurveysoft.www.servicesv5.Answer;
 import com.isurveysoft.www.servicesv5.ExportService;
@@ -29,18 +29,15 @@ import com.isurveysoft.www.servicesv5.Survey;
 import com.isurveysoft.www.servicesv5.SurveyResult;
 
 public class Application extends Controller {
-	/*
-	 * 1- piechart
-	 * 2- barchart*/
-	private int[] types = new int[]{1,2};
 	private static Map<Long, Integer> chartQuestions = new HashMap<Long, Integer>();
 	private static Map<Long, Integer> descQuestions = new HashMap<Long, Integer>();
 	private static String user;
 	private static String surveyPin;
-	
+	private static String surveyCP;
+
 	public static Result wsdl() throws RemoteException, ServiceException {
 		ExportService service = new ExportServiceLocator();
-		Survey survey = service.getExportServiceSoap().exportSurvey("01f3e767b", "88ff56b59f");
+		Survey survey = service.getExportServiceSoap().exportSurvey(surveyCP, surveyPin);
 		Screen[] screens= survey.getScreens();
 		return ok(Json.toJson(screens));
 	}
@@ -49,17 +46,18 @@ public class Application extends Controller {
 	}	
 	public static Result ans() throws RemoteException, ServiceException {
 		ExportService service = new ExportServiceLocator();
-		SurveyResult[] results = service.getExportServiceSoap().exportSurveyResults("01f3e767b", "88ff56b59f" ,"2013-06-07 16:24:42","2013-06-08 23:24:42",0l);
+		SurveyResult[] results = service.getExportServiceSoap().exportSurveyResults(surveyCP, surveyPin ,"2013-06-07 16:24:42","2013-06-08 23:24:42",0l);
 		return ok(Json.toJson(results));
 	}
 
-	public static Result index() throws RemoteException, ServiceException {
+	public static Result results() throws RemoteException, ServiceException {
 		ExportService service = new ExportServiceLocator();
+		@SuppressWarnings("unchecked")
 		List<QuestionJSON> cached = (List<QuestionJSON>) Cache.get(user);
 		if(cached==null||cached.size()<1){
-			Survey survey = service.getExportServiceSoap().exportSurvey("01f3e767b", surveyPin);
+			Survey survey = service.getExportServiceSoap().exportSurvey(surveyCP, surveyPin);
 			Screen[] screens= survey.getScreens();
-			SurveyResult[] results = service.getExportServiceSoap().exportSurveyResults("01f3e767b", surveyPin ,"2013-06-07 16:24:42","2013-06-08 23:24:42",0l);
+			SurveyResult[] results = service.getExportServiceSoap().exportSurveyResults(surveyCP, surveyPin ,"2013-06-07 16:24:42","2013-06-08 23:24:42",0l);
 			cached = toJsonFormat(screens,results);
 			Cache.set(user, cached);
 		}
@@ -110,9 +108,10 @@ public class Application extends Controller {
 	public static Result nesil(String userId) throws SQLException {
 		user=userId;
 		Statement st = DB.getConnection().createStatement();
-		ResultSet rs = st.executeQuery("select pin,s.id from user u,survey s where s.id = u.surveyid and u.code = '"+user+"'");
+		ResultSet rs = st.executeQuery("select pin,s.id,s.cp from user u,survey s where s.id = u.surveyid and u.code = '"+user+"'");
 		rs.next();
 		surveyPin = rs.getString(1);
+		surveyCP = rs.getString(3);
 		int surveyId = rs.getInt(2);
 		st = DB.getConnection().createStatement();
 		rs = st.executeQuery("select q.screenid,q.quetype,q.charttype from survey s, question q where q.surveyid = "+surveyId);
@@ -124,7 +123,18 @@ public class Application extends Controller {
 			}
 		}
 		return survey();
-//		return ok(Json.toJson(chartQuestions));
 	}
-
+	public static Result getDistricts(int city,int townid){
+		return ok ();
+	}
+	public static Result getTowns(int city) throws SQLException{
+		Statement st = DB.getConnection().createStatement();
+		ResultSet rs = st.executeQuery("select id,name from town where cityid ="+city);
+		List<AddressJSON> l = new LinkedList<AddressJSON>();
+		while(rs.next()){
+			l.add(new AddressJSON(rs.getString(2),rs.getInt(1)));
+		}
+		return ok();
+	}
+	
 }

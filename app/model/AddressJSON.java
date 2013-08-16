@@ -16,6 +16,11 @@ public int getCode() {
 public void setCode(int code) {
 	this.code = code;
 }
+public AddressJSON(String text, int code) {
+	super();
+	this.text = text;
+	this.code = code;
+}
 
 
 }

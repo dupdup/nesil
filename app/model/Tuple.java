@@ -8,6 +8,7 @@ public class Tuple<X, Y> {
 		result = prime * result + ((y == null) ? 0 : y.hashCode());
 		return result;
 	}
+	@SuppressWarnings("rawtypes")
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj)
