@@ -1,8 +1,6 @@
 package controllers;
 
 import java.rmi.RemoteException;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -14,13 +12,14 @@ import java.util.Map;
 import javax.xml.rpc.ServiceException;
 
 import model.AnswerJSON;
-import model.Nesil;
 import model.QuestionJSON;
 import model.Tuple;
 import play.cache.Cache;
+import play.db.DB;
 import play.libs.Json;
-import play.mvc.Controller;
-import play.mvc.Result;
+import play.*;
+import play.data.*;
+import play.mvc.*;
 
 import com.isurveysoft.www.servicesv5.Answer;
 import com.isurveysoft.www.servicesv5.ExportService;
@@ -28,7 +27,6 @@ import com.isurveysoft.www.servicesv5.ExportServiceLocator;
 import com.isurveysoft.www.servicesv5.Screen;
 import com.isurveysoft.www.servicesv5.Survey;
 import com.isurveysoft.www.servicesv5.SurveyResult;
-import play.db.*;
 
 public class Application extends Controller {
 	/*
@@ -37,7 +35,7 @@ public class Application extends Controller {
 	private int[] types = new int[]{1,2};
 	private static Map<Long, Integer> chartQuestions = new HashMap<Long, Integer>();
 	private static Map<Long, Integer> descQuestions = new HashMap<Long, Integer>();
-	private static int user =	1;
+	private static String user;
 	private static String surveyPin;
 	
 	public static Result wsdl() throws RemoteException, ServiceException {
@@ -57,13 +55,13 @@ public class Application extends Controller {
 
 	public static Result index() throws RemoteException, ServiceException {
 		ExportService service = new ExportServiceLocator();
-		List<QuestionJSON> cached = (List<QuestionJSON>) Cache.get(user+"");
+		List<QuestionJSON> cached = (List<QuestionJSON>) Cache.get(user);
 		if(cached==null||cached.size()<1){
 			Survey survey = service.getExportServiceSoap().exportSurvey("01f3e767b", surveyPin);
 			Screen[] screens= survey.getScreens();
 			SurveyResult[] results = service.getExportServiceSoap().exportSurveyResults("01f3e767b", surveyPin ,"2013-06-07 16:24:42","2013-06-08 23:24:42",0l);
 			cached = toJsonFormat(screens,results);
-			Cache.set(user+"", cached);
+			Cache.set(user, cached);
 		}
 		return ok(Json.toJson(cached));
 	}
@@ -109,9 +107,10 @@ public class Application extends Controller {
 		}
 		return list;
 	}
-	public static Result nesil() throws SQLException {
+	public static Result nesil(String userId) throws SQLException {
+		user=userId;
 		Statement st = DB.getConnection().createStatement();
-		ResultSet rs = st.executeQuery("select pin,s.id from user u,survey s where s.id = u.surveyid and u.id = "+user);
+		ResultSet rs = st.executeQuery("select pin,s.id from user u,survey s where s.id = u.surveyid and u.code = '"+user+"'");
 		rs.next();
 		surveyPin = rs.getString(1);
 		int surveyId = rs.getInt(2);
@@ -124,7 +123,8 @@ public class Application extends Controller {
 				descQuestions.put(rs.getLong(1), rs.getInt(3));
 			}
 		}
-		return ok(Json.toJson(chartQuestions));
+		return survey();
+//		return ok(Json.toJson(chartQuestions));
 	}
 
 }

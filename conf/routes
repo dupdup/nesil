@@ -3,7 +3,7 @@
 # ~~~~
 
 # Home page
-GET     /nesil                           controllers.Application.nesil()
+GET     /nesil/:id                           controllers.Application.nesil(id:String)
 GET     /wsdl                           controllers.Application.wsdl()
 GET     /ans                           controllers.Application.ans()
 GET     /                           controllers.Application.index()
