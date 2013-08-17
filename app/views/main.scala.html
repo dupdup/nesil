@@ -6,7 +6,9 @@
 <title>Survey</title>
 <link rel="shortcut icon" type="image/png" href="@routes.Assets.at("images/favicon.png")">
 <link rel="stylesheet" type="text/css" href="@routes.Assets.at("stylesheets/survey.css")">
+<link rel="stylesheet" type="text/css" href="@routes.Assets.at("stylesheets/resources/select2.css")">
 <script src="@routes.Assets.at("javascripts/jquery-1.9.0.min.js")" type="text/javascript"></script>
+<script src="@routes.Assets.at("javascripts/select2.min.js")" type="text/javascript"></script>
 <script type="text/javascript" src="@routes.Assets.at("app/pir.js")"></script>
 <script src="http://code.highcharts.com/highcharts.js"></script>
 <script src="http://code.highcharts.com/modules/exporting.js"></script>
@@ -15,6 +17,7 @@
 <body>
 	@content
 	<!-- wrap starts here -->
+	<div id ="townc">
 <div id="wrap">
 	<!--header -->
 	<div id="header">			
@@ -24,23 +27,20 @@
 	<div id="header-photo">
 
 	<table style="margin: 0 auto 0 auto"><tr><td>
-		<div data-role="fieldcontain" style="width:200px; height:70px; float:left; top: 50px">
-		 <label for="select-choice-1" style="width:200px; left:140px; top:50px">Ilce:</label>
-		 <select name="select-choice-1" id="select-choice-1" style="width:200px; height:30px; left:140px; top:50px">
-		 <option value="standard">Standard: 7 day</option>
-		 <option value="rush">Rush: 3 days</option>
-		 <option value="express">Express: next day</option>
-		 <option value="overnight">Overnight</option>
+		<div id="towncombodiv" style="width:200px; height:70px; float:left; top: 50px">
+<!-- 		 <label for="select-choice-1" style="width:200px; left:140px; top:50px">Ilce:</label> -->
+		 <select id="towncombo" style="width:200px; height:30px; left:140px; top:50px">
+			 <option value="0">Ýlçe</option>
 		 </select>
 		</div></td><td>
-		<div data-role="fieldcontain" style="width:200px; height:70px; left:140px; top:50px">
-		 <label for="select-choice-1" style="width:200px; left:140px; top:50px">Belde/Mahalle:</label>
-		 <select name="select-choice-1" id="select-choice-1" style="width:200px; height:30px; left:140px; top:50px">
-		 <option value="standard">Standard: 7 day</option>
-		 <option value="rush">Rush: 3 days</option>
-		 <option value="express">Express: next day</option>
-		 <option value="overnight">Overnight</option>
-		 </select>
+		<div id="districtcombo" style="width:200px; height:70px; left:140px; top:50px">
+<!-- 		 <label for="select-choice-1" style="width:200px; left:140px; top:50px">Belde/Mahalle:</label> -->
+<!-- 		 <select name="select-choice-1" id="select-choice-1" style="width:200px; height:30px; left:140px; top:50px"> -->
+<!-- 		 <option value="standard">Standard: 7 day</option> -->
+<!-- 		 <option value="rush">Rush: 3 days</option> -->
+<!-- 		 <option value="express">Express: next day</option> -->
+<!-- 		 <option value="overnight">Overnight</option> -->
+<!-- 		 </select> -->
 		</div></td>
 		</tr></table>
 	</div>		

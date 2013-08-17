@@ -24,5 +24,14 @@ public class AnswerJSON {
 	public void setCode(long l) {
 		this.code = l;
 	}
+	public AnswerJSON(String text, long code, int count) {
+		super();
+		this.text = text;
+		this.code = code;
+		this.count = count;
+	}
+	public AnswerJSON() {
+		super();
+	}
 	
 }

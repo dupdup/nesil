@@ -13,6 +13,7 @@ import javax.xml.rpc.ServiceException;
 
 import model.AddressJSON;
 import model.AnswerJSON;
+import model.GeoAnswerJSON;
 import model.QuestionJSON;
 import model.Tuple;
 import play.cache.Cache;
@@ -29,6 +30,7 @@ import com.isurveysoft.www.servicesv5.Survey;
 import com.isurveysoft.www.servicesv5.SurveyResult;
 
 public class Application extends Controller {
+	private static final long GEOSCREENID = 0;
 	private static Map<Long, Integer> chartQuestions = new HashMap<Long, Integer>();
 	private static Map<Long, Integer> descQuestions = new HashMap<Long, Integer>();
 	private static String user;
@@ -65,7 +67,17 @@ public class Application extends Controller {
 		}
 		return ok(Json.toJson(cached));
 	}
-
+	public static Result geoResults(long screenId) throws RemoteException, ServiceException {
+		ExportService service = new ExportServiceLocator();
+		@SuppressWarnings("unchecked")
+		List<GeoAnswerJSON> cached = (List<GeoAnswerJSON>) Cache.get(user+"geo"+screenId);
+		if(cached==null||cached.size()<1){
+			SurveyResult[] results = service.getExportServiceSoap().exportSurveyResults(surveyCP, surveyPin ,"2013-06-07 16:24:42","2013-06-08 23:24:42",0l);
+			cached = toGeoJsonFormat(screenId ,results);
+			Cache.set(user+"geo"+screenId, cached);
+		}
+		return ok(Json.toJson(cached));
+	}
 	private static List<QuestionJSON> toJsonFormat(Screen[] screens, SurveyResult[] results) {
 		List<QuestionJSON> list = new LinkedList<QuestionJSON>();
 		HashMap<Tuple<Long, Long>, Integer> ansMap = new HashMap<Tuple<Long, Long>, Integer>();
@@ -107,6 +119,17 @@ public class Application extends Controller {
 		}
 		return list;
 	}
+	private static List<GeoAnswerJSON> toGeoJsonFormat(long screenId ,SurveyResult[] results) {
+		List<GeoAnswerJSON> list = new LinkedList<GeoAnswerJSON>();
+		for(SurveyResult sr:results){
+			for(com.isurveysoft.www.servicesv5.Result res : sr.getScreenResults()){
+				if(res.getScreenId()==screenId)
+				list.add(new GeoAnswerJSON(sr.getResultLocationLatitude()+"",
+						sr.getResultLocationLongitude()+"",sr.getResultLocationAltitude()+"",new AnswerJSON(res.getResultAnswer(),res.getAnswerId(),1)));
+			}
+		}
+		return list;
+	}
 	public static Result nesil(String userId) throws SQLException {
 		user=userId;
 		Statement st = DB.getConnection().createStatement();
@@ -128,23 +151,29 @@ public class Application extends Controller {
 		}
 		return survey();
 	}
-	public static Result getDistricts(int city,int townid) throws SQLException{
+	public static Result getDistricts(int townid) throws SQLException{
 		Statement st = DB.getConnection().createStatement();
 		ResultSet rs = st.executeQuery("select id,name from district where townid ="+townid);
 		List<AddressJSON> l = new LinkedList<AddressJSON>();
 		while(rs.next()){
 			l.add(new AddressJSON(rs.getString(2),rs.getInt(1)));
 		}
-		return ok();
+		return ok(Json.toJson(l));
 	}
-	public static Result getTowns(int city) throws SQLException{
+	public static Result getTowns() throws SQLException{
+		if(surveyMainLocType==2){
+			Statement st = DB.getConnection().createStatement();
+			ResultSet rs = st.executeQuery("select name from town where id ="+surveyMainLocId);
+			rs.next();
+			return ok(Json.toJson(new AddressJSON(rs.getString(1), surveyMainLocId)));
+		}
 		Statement st = DB.getConnection().createStatement();
-		ResultSet rs = st.executeQuery("select id,name from town where cityid ="+city);
+		ResultSet rs = st.executeQuery("select id,name from town where cityid ="+surveyMainLocId);
 		List<AddressJSON> l = new LinkedList<AddressJSON>();
 		while(rs.next()){
 			l.add(new AddressJSON(rs.getString(2),rs.getInt(1)));
 		}
-		return ok();
+		return ok(Json.toJson(l));
 	}
 	
 }

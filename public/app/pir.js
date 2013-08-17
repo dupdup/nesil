@@ -1,4 +1,7 @@
 $(function () {
+	$.ajax({url:"/area",success:function(results){
+		results.length
+	}});
 	$.ajax({url:"/results",success:function(results){
 	    chartCount = results.length;
 	 	$("#container").html(""); 

@@ -8,8 +8,10 @@ GET     /wsdl                           controllers.Application.wsdl()
 GET     /ans                           	controllers.Application.ans()
 GET     /results                        controllers.Application.results()
 GET     /survey                         controllers.Application.survey()
-GET		/area/:city					controllers.Application.getTowns(city:Int)
-GET		/area/:city/:townid			controllers.Application.getDistricts(city:Int,townid:Int)
+GET		/georesults/:screenId			controllers.Application.geoResults(screenId:Long)
+GET		/area							controllers.Application.getTowns()
+GET		/area/:townid					controllers.Application.getDistricts(townid:Int)
 
 # Map static resources from the /public folder to the /assets URL path
-GET     /assets/*file               controllers.Assets.at(path="/public", file)
+
+GET     /assets/*file               	controllers.Assets.at(path="/public", file)
