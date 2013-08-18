@@ -25,12 +25,12 @@ import play.mvc.Result;
 import com.isurveysoft.www.servicesv5.Answer;
 import com.isurveysoft.www.servicesv5.ExportService;
 import com.isurveysoft.www.servicesv5.ExportServiceLocator;
+import com.isurveysoft.www.servicesv5.Question;
 import com.isurveysoft.www.servicesv5.Screen;
 import com.isurveysoft.www.servicesv5.Survey;
 import com.isurveysoft.www.servicesv5.SurveyResult;
 
 public class Application extends Controller {
-	private static final long GEOSCREENID = 0;
 	private static Map<Long, Integer> chartQuestions = new HashMap<Long, Integer>();
 	private static Map<Long, Integer> descQuestions = new HashMap<Long, Integer>();
 	private static String user;
@@ -55,7 +55,7 @@ public class Application extends Controller {
 	}	
 	public static Result ans() throws RemoteException, ServiceException {
 		ExportService service = new ExportServiceLocator();
-		SurveyResult[] results = service.getExportServiceSoap().exportSurveyResults(surveyCP, surveyPin ,"2013-06-07 16:24:42","2013-06-08 23:24:42",0l);
+		SurveyResult[] results = service.getExportServiceSoap().exportSurveyResults(surveyCP, surveyPin ,"2013-07-27 16:24:42","2013-07-28 23:24:42",0l);
 		return ok(Json.toJson(results));
 	}
 
@@ -69,7 +69,7 @@ public class Application extends Controller {
 		}
 		SurveyResult[] cachedResults =(SurveyResult[]) Cache.get(user+"answer");
 		if(cachedResults==null||cachedResults.length<1){
-			cachedResults = service.getExportServiceSoap().exportSurveyResults(surveyCP, surveyPin ,"2013-06-05 16:24:42","2013-06-08 23:24:42",0l);
+			cachedResults = service.getExportServiceSoap().exportSurveyResults(surveyCP, surveyPin ,"2013-07-27 16:24:42","2013-07-28 23:24:42",0l);
 			Cache.set(user+"answer",cachedResults);
 		}
 		return ok(Json.toJson(toJsonFormat(cachedScreens,cachedResults,town,district)));
@@ -88,6 +88,7 @@ public class Application extends Controller {
 
 	private static List<QuestionJSON> toJsonFormat(Screen[] screens, SurveyResult[] results, int town, int district) {
 		List<QuestionJSON> list = new LinkedList<QuestionJSON>();
+		List<QuestionJSON> listMultiQue = new LinkedList<QuestionJSON>();
 		HashMap<Tuple<Long, Long>, Integer> ansMap = new HashMap<Tuple<Long, Long>, Integer>();
 		for(SurveyResult sr:results){
 			//			LinkedList<com.isurveysoft.www.servicesv5.Result> l = new LinkedList<com.isurveysoft.www.servicesv5.Result>();
@@ -105,7 +106,7 @@ public class Application extends Controller {
 				}
 			if(onRegion)
 				for(com.isurveysoft.www.servicesv5.Result res : sr.getScreenResults()){
-					Tuple<Long, Long> tuple = new Tuple<Long,Long>(res.getScreenId(),res.getAnswerId());
+					Tuple<Long, Long> tuple = new Tuple<Long,Long>(res.getQuestionId()==null?res.getScreenId():res.getQuestionId(),res.getAnswerId());
 					Integer c = ansMap.get(tuple);
 					if(c==null)
 						ansMap.put(tuple, 1);
@@ -114,17 +115,38 @@ public class Application extends Controller {
 				}
 		}
 		for (Screen screen : screens) {
-			//şimdilik sadece pie chartlar
-			if(chartQuestions.containsKey(screen.getScreenId())){
+			if(!chartQuestions.containsKey(screen.getScreenId())){
+				continue;
+			}
+			HashMap<Long, String> ansTextMap = new HashMap<Long, String>();
+			for(Answer answer : screen.getAnswers()){
+				ansTextMap.put(answer.getAnswerId(), answer.getAnswerText());
+			}
+			if(screen.getQuestions()!=null && screen.getQuestions().length>0){
+				for(Question q : screen.getQuestions()){
+					QuestionJSON que = new QuestionJSON();
+					que.setText(q.getQuestionText());
+					que.setType(chartQuestions.get(screen.getScreenId()));
+					List<AnswerJSON> ansList = new LinkedList<AnswerJSON>();	
+					for(Long x : ansTextMap.keySet()){
+						Tuple<Long, Long> key = new Tuple<Long,Long>(q.getQuestionId(),x);
+						AnswerJSON ans = new AnswerJSON();
+						ans.setCode(x);
+						ans.setText(ansTextMap.get(x));
+						Integer count = ansMap.get(key);
+						ans.setCount(count==null?0:count);
+						if(count!=null)
+							ansList.add(ans);
+					}
+					que.setAnswer(ansList);
+					listMultiQue.add(que);
+				}
+			}
+			else{
 				QuestionJSON que = new QuestionJSON();
 				que.setText(screen.getScreenText());
 				que.setType(chartQuestions.get(screen.getScreenId()));
-				//que.setType("select".equals(screen.getType())?1:2);
-				LinkedList<AnswerJSON> ansList = new LinkedList<AnswerJSON>();
-				HashMap<Long, String> ansTextMap = new HashMap<Long, String>();
-				for(Answer answer : screen.getAnswers()){
-					ansTextMap.put(answer.getAnswerId(), answer.getAnswerText());
-				}
+				List<AnswerJSON> ansList = new LinkedList<AnswerJSON>();
 				for(Long x : ansTextMap.keySet()){
 					Tuple<Long, Long> key = new Tuple<Long,Long>(screen.getScreenId(),x);
 					AnswerJSON ans = new AnswerJSON();
@@ -138,7 +160,9 @@ public class Application extends Controller {
 				que.setAnswer(ansList);
 				list.add(que);
 			}
+
 		}
+		list.addAll(listMultiQue);
 		return list;
 	}
 

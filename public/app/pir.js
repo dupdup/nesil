@@ -51,7 +51,10 @@ var we = {url:"/results/",success:function(results){
 			var id="#container"+j;	
 			var t=[];
 			$.each(results[j].answer, function(index, v) {
-				t.push({name:v.text,y:v.count})        
+				if(index == 1)
+					t.push({name:v.text,y:v.count,sliced:true})
+				else
+					t.push({name:v.text,y:v.count})        
 			});
 
 			if(results[j].type == 2){
@@ -102,10 +105,32 @@ var we = {url:"/results/",success:function(results){
 					}]
 				});
 			}
+			$("#container"+j).html($("#container"+j).html()+"<div><button id=\"popup"+j+"\">map</button></div>")
+			
+			$("#popup"+j).colorbox({inline:true, href:$('#map_canvas')});			
 		}
 	}};
 we.url="/results/0/0";
 $.ajax(we);
+
+$('#map_canvas').gmap({'zoom': 2, 'disableDefaultUI':true}).bind('init', function(evt, map) { 
+	var bounds = map.getBounds();
+	var southWest = bounds.getSouthWest();
+	var northEast = bounds.getNorthEast();
+	var lngSpan = northEast.lng() - southWest.lng();
+	var latSpan = northEast.lat() - southWest.lat();
+	for ( var i = 0; i < 1000; i++ ) {
+		var lat = southWest.lat() + latSpan * Math.random();
+		var lng = southWest.lng() + lngSpan * Math.random();
+		$('#map_canvas').gmap('addMarker', { 
+			'position': new google.maps.LatLng(lat, lng) 
+		}).click(function() {
+			$('#map_canvas').gmap('openInfoWindow', { content : 'Hello world!' }, this);
+		});
+	}
+	$('#map_canvas').gmap('set', 'MarkerClusterer', new MarkerClusterer(map, $(this).gmap('get', 'markers')));
+});
+
 $("#towncombo").select2({width:200, placeholder:"ilçe"
 	,triggerChange:true,allowClear:true})
 	.on('change',function(x){
@@ -175,7 +200,7 @@ function createBar(id, result){
 			enabled: false
 		},
 		tooltip: {
-			pointFormat: 'Population in 2008: <b>{point.y:.1f} millions</b>',
+			pointFormat: 'Kişi Sayısı: <b>{point.y} </b>',
 		},
 		series: [{
 			name: 'Population',
@@ -212,8 +237,7 @@ function createGrid(id, result){
 		sum += t[i].y;
 	}
 	$(id).html(""); 
-	var table = "grid";
-	var tblRow ="<table id=\""+table+"\" class=\"grid\" style=\"width:400px; height:400px; overflow: auto; display:block;\"> <thead> <tr> <th>Cevaplar</th> <th>Kisi Sayisi</th> <th>Yüzde%</th> </tr> ";
+	var tblRow ="<table id=\"grid\" class=\"grid\" style=\"width:400px; height:400px; overflow: auto; display:block;\"> <thead> <tr> <th>"+result.text+"</th> <th>Kisi Sayisi</th> <th>Yüzde%</th> </tr> ";
 	for(var i=0; i<t.length; i++){
 		tblRow = tblRow + "<tr style=\"width:400px; margin-left:0px; margin-right:0px; top:0px; bottom:0px\"><td class=\"td_grid\" style=\"text-align:left;\">"+t[i].name+"</td><td>"+t[i].y+"</td><td> %"+((t[i].y*100)/sum).toFixed()+"</td></tr>";
 	}
