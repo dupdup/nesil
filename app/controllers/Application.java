@@ -36,6 +36,7 @@ public class Application extends Controller {
 	private static String user;
 	private static String surveyPin;
 	private static String surveyCP;
+	private static long filterScreenId; 
 	private static int surveyMainLocId;
 	private static int surveyMainLocType;
 
@@ -48,24 +49,29 @@ public class Application extends Controller {
 	public static Result survey(){
 		return ok(views.html.index.render("doruk"));
 	}	
+	public static Result geores(){
+		return ok(views.html.index2.render("doruk"));
+	}	
 	public static Result ans() throws RemoteException, ServiceException {
 		ExportService service = new ExportServiceLocator();
 		SurveyResult[] results = service.getExportServiceSoap().exportSurveyResults(surveyCP, surveyPin ,"2013-06-07 16:24:42","2013-06-08 23:24:42",0l);
 		return ok(Json.toJson(results));
 	}
 
-	public static Result results() throws RemoteException, ServiceException {
+	public static Result results(int town,int district) throws RemoteException, ServiceException {
 		ExportService service = new ExportServiceLocator();
-		@SuppressWarnings("unchecked")
-		List<QuestionJSON> cached = (List<QuestionJSON>) Cache.get(user);
-		if(cached==null||cached.size()<1){
+		Screen[] cachedScreens =(Screen[]) Cache.get(user+"screen");
+		if(cachedScreens==null||cachedScreens.length<1){
 			Survey survey = service.getExportServiceSoap().exportSurvey(surveyCP, surveyPin);
-			Screen[] screens= survey.getScreens();
-			SurveyResult[] results = service.getExportServiceSoap().exportSurveyResults(surveyCP, surveyPin ,"2013-06-07 16:24:42","2013-06-08 23:24:42",0l);
-			cached = toJsonFormat(screens,results);
-			Cache.set(user, cached);
+			cachedScreens= survey.getScreens();
+			Cache.set(user+"screen",cachedScreens);
 		}
-		return ok(Json.toJson(cached));
+		SurveyResult[] cachedResults =(SurveyResult[]) Cache.get(user+"answer");
+		if(cachedResults==null||cachedResults.length<1){
+			cachedResults = service.getExportServiceSoap().exportSurveyResults(surveyCP, surveyPin ,"2013-06-05 16:24:42","2013-06-08 23:24:42",0l);
+			Cache.set(user+"answer",cachedResults);
+		}
+		return ok(Json.toJson(toJsonFormat(cachedScreens,cachedResults,town,district)));
 	}
 	public static Result geoResults(long screenId) throws RemoteException, ServiceException {
 		ExportService service = new ExportServiceLocator();
@@ -78,18 +84,33 @@ public class Application extends Controller {
 		}
 		return ok(Json.toJson(cached));
 	}
-	private static List<QuestionJSON> toJsonFormat(Screen[] screens, SurveyResult[] results) {
+
+	private static List<QuestionJSON> toJsonFormat(Screen[] screens, SurveyResult[] results, int town, int district) {
 		List<QuestionJSON> list = new LinkedList<QuestionJSON>();
 		HashMap<Tuple<Long, Long>, Integer> ansMap = new HashMap<Tuple<Long, Long>, Integer>();
 		for(SurveyResult sr:results){
-			for(com.isurveysoft.www.servicesv5.Result res : sr.getScreenResults()){
-				Tuple<Long, Long> tuple = new Tuple<Long,Long>(res.getScreenId(),res.getAnswerId());
-				Integer c = ansMap.get(tuple);
-				if(c==null)
-					ansMap.put(tuple, 1);
-				else
-					ansMap.put(tuple, c+1);
-			}
+			//			LinkedList<com.isurveysoft.www.servicesv5.Result> l = new LinkedList<com.isurveysoft.www.servicesv5.Result>();
+			boolean onRegion = true;
+			if(town>0)
+				for(com.isurveysoft.www.servicesv5.Result res : sr.getScreenResults()){
+					if(res.getScreenId()==filterScreenId&&res.getResultAnswer()!=null&&res.getResultAnswer().length()>0){
+						if(district>0){
+							onRegion = district%10==res.getResultAnswer().codePointAt(0)%10;
+						}
+						else{
+							onRegion = town%5 ==res.getResultAnswer().codePointAt(0)%5;
+						}
+					}
+				}
+			if(onRegion)
+				for(com.isurveysoft.www.servicesv5.Result res : sr.getScreenResults()){
+					Tuple<Long, Long> tuple = new Tuple<Long,Long>(res.getScreenId(),res.getAnswerId());
+					Integer c = ansMap.get(tuple);
+					if(c==null)
+						ansMap.put(tuple, 1);
+					else
+						ansMap.put(tuple, c+1);
+				}
 		}
 		for (Screen screen : screens) {
 			//şimdilik sadece pie chartlar
@@ -119,13 +140,14 @@ public class Application extends Controller {
 		}
 		return list;
 	}
+
 	private static List<GeoAnswerJSON> toGeoJsonFormat(long screenId ,SurveyResult[] results) {
 		List<GeoAnswerJSON> list = new LinkedList<GeoAnswerJSON>();
 		for(SurveyResult sr:results){
 			for(com.isurveysoft.www.servicesv5.Result res : sr.getScreenResults()){
 				if(res.getScreenId()==screenId)
-				list.add(new GeoAnswerJSON(sr.getResultLocationLatitude()+"",
-						sr.getResultLocationLongitude()+"",sr.getResultLocationAltitude()+"",new AnswerJSON(res.getResultAnswer(),res.getAnswerId(),1)));
+					list.add(new GeoAnswerJSON(sr.getResultLocationLatitude()+"",
+							sr.getResultLocationLongitude()+"",sr.getResultLocationAltitude()+"",new AnswerJSON(res.getResultAnswer(),res.getAnswerId(),1)));
 			}
 		}
 		return list;
@@ -149,6 +171,10 @@ public class Application extends Controller {
 				descQuestions.put(rs.getLong(1), rs.getInt(3));
 			}
 		}
+		st = DB.getConnection().createStatement();
+		rs = st.executeQuery("select q.screenid from survey s, question q where q.quetype = 5 and q.surveyid = "+surveyId);
+		rs.next();
+		filterScreenId = rs.getLong(1);
 		return survey();
 	}
 	public static Result getDistricts(int townid) throws SQLException{
@@ -175,5 +201,5 @@ public class Application extends Controller {
 		}
 		return ok(Json.toJson(l));
 	}
-	
+
 }

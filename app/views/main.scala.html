@@ -12,12 +12,10 @@
 <script type="text/javascript" src="@routes.Assets.at("app/pir.js")"></script>
 <script src="http://code.highcharts.com/highcharts.js"></script>
 <script src="http://code.highcharts.com/modules/exporting.js"></script>
-
 </head>
 <body>
 	@content
 	<!-- wrap starts here -->
-	<div id ="townc">
 <div id="wrap">
 	<!--header -->
 	<div id="header">			
@@ -28,25 +26,18 @@
 
 	<table style="margin: 0 auto 0 auto"><tr><td>
 		<div id="towncombodiv" style="width:200px; height:70px; float:left; top: 50px">
-<!-- 		 <label for="select-choice-1" style="width:200px; left:140px; top:50px">Ilce:</label> -->
 		 <select id="towncombo" style="width:200px; height:30px; left:140px; top:50px">
-			 <option value="0">Ýlçe</option>
+			 <option></option>
 		 </select>
 		</div></td><td>
-		<div id="districtcombo" style="width:200px; height:70px; left:140px; top:50px">
-<!-- 		 <label for="select-choice-1" style="width:200px; left:140px; top:50px">Belde/Mahalle:</label> -->
-<!-- 		 <select name="select-choice-1" id="select-choice-1" style="width:200px; height:30px; left:140px; top:50px"> -->
-<!-- 		 <option value="standard">Standard: 7 day</option> -->
-<!-- 		 <option value="rush">Rush: 3 days</option> -->
-<!-- 		 <option value="express">Express: next day</option> -->
-<!-- 		 <option value="overnight">Overnight</option> -->
-<!-- 		 </select> -->
+		<div id="districtcombodiv" style="width:200px; height:70px; left:140px; top:50px">
+		<select id="districtcombo" style="width:200px; height:30px; left:140px; top:50px">
+			 <option></option>
+		 </select>
 		</div></td>
 		</tr></table>
 	</div>		
 					
-			 
-	<!-- content-wrap starts -->
 	<div id="content-wrap" class="content-wrap">
 		<div id="container" style="margin: 0 auto 0 auto"></div> 
 	<!-- content-wrap ends-->	
