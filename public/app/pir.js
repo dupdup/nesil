@@ -1,4 +1,35 @@
 $(function () {
+$('#header-photo').hide();
+});
+
+function loginSurvey(){
+	console.log(document.getElementById("user").value);
+	console.log(document.getElementById("pass").value);
+	user= document.getElementById("user").value;
+	pass = document.getElementById("pass").value;
+	if(user == "" || pass == ""){
+		alert("Kullanici adı ve Sifre alanlarını doldurunuz.");
+	}
+	$.ajax({url:"/verify/"+user+"/"+pass,success:function(res){
+		console.log(res);
+		if(res === "true"){
+			$.ajax({url:"/nesil"+"/"+user,async: false,success:function(res){
+				
+			}});
+			init();
+			$('#login').hide();
+			$('#header-photo').show();
+			$('#wrap').show();
+		}else{
+			alert("Giris basarisiz. Lütfen tekrar deneyiniz.");
+			document.getElementById("pass").value = "";
+			document.getElementById("user").value = "";
+		}
+			
+	}});
+}
+
+function init(){
 $.ajax({url:"/area",async: false,success:function(res){
 	$.each(res, function(i,n){
 		var x =$('<option>').val(n.code).text(n.text);
@@ -41,8 +72,8 @@ var we = {url:"/results/",success:function(results){
 						marginTop:5,
 						marginBottom:1,
 						width: 400,
-						height: 400
-
+						height: 400,
+						borderRadius:15
 					},
 					title: {
 						text: results[j].text
@@ -73,10 +104,8 @@ var we = {url:"/results/",success:function(results){
 			}
 		}
 	}};
-
 we.url="/results/0/0";
 $.ajax(we);
-
 $("#towncombo").select2({width:200, placeholder:"ilçe"
 	,triggerChange:true,allowClear:true})
 	.on('change',function(x){
@@ -107,8 +136,7 @@ $("#districtcombo").select2({width:200, placeholder:"köy/mahalle/belde"
 			$.ajax(we);
 		}
 	});
-
-});
+}
 
 function createBar(id, result){
 	var t=[];

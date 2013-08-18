@@ -15,33 +15,66 @@
 </head>
 <body>
 	@content
-	<!-- wrap starts here -->
-<div id="wrap">
-	<!--header -->
-	<div id="header">			
-	<!--header ends-->					
-	</div>
-		
-	<div id="header-photo">
+	<div id="login" style="top: 0px;">
+		<table>
+			<tr>
+				<td>
+					<div id="userDiv" style="width: 200px; height: 20px; float: left;">
+						Kullanici Adi: <input type="text" id="user"
+							style="width: 200px; height: 30px; left: 140px;" />
+					</div>
+				</td>
+				<td>
+					<div id="passDiv" style="width: 200px; height: 20px; float: left;">
+						Sifre: <input type="password" id="pass"
+							style="width: 200px; height: 30px; left: 140px;" />
+					</div>
+				</td>
+				<td style="border: none">
+					<div id="giris"
+						style="width: 110px; height: 30px; float: left; top: 10px; text-decoration: none;">
+						Giris
+						<button id="login-button" onclick="loginSurvey()"
+							style="cursor:pointer; width: 110px; height: 40px; top: 10px;">Giris
+							Yap</button>
+					</div>
+				</td>
+			</tr>
+		</table>
+		</div>
+		<!-- wrap starts here -->
+		<div id="wrap">
+		<!--header -->
+		<div id="header">
+			<!--header ends-->
+		</div>
 
-	<table style="margin: 0 auto 0 auto"><tr><td>
-		<div id="towncombodiv" style="width:200px; height:70px; float:left; top: 50px">
-		 <select id="towncombo" style="width:200px; height:30px; left:140px; top:50px">
-			 <option></option>
-		 </select>
-		</div></td><td>
-		<div id="districtcombodiv" style="width:200px; height:70px; left:140px; top:50px">
-		<select id="districtcombo" style="width:200px; height:30px; left:140px; top:50px">
-			 <option></option>
-		 </select>
-		</div></td>
-		</tr></table>
-	</div>		
-					
-	<div id="content-wrap" class="content-wrap">
-		<div id="container" style="margin: 0 auto 0 auto"></div> 
-	<!-- content-wrap ends-->	
+		<div id="header-photo" style="margin: 0 auto 0 auto">
+
+			<table style="margin: 0 auto 0 auto; float:left; height: 40px; width: 900px; top:30px;">
+				<tr>
+					<td style="width: 200px; height: 30px;">
+						<div id="towncombodiv" style="width: 200px; height: 30px; margin: 0 auto 0 auto; top:40px;">
+							<select id="towncombo" style="width: 200px; height: 30px;">
+								<option></option>
+							</select>
+						</div>
+					</td>
+					<td style="width: 200px; height: 30px;">
+						<div id="districtcombodiv" style="width: 200px; height: 30px; left: 140px; top:40px;">
+							<select id="districtcombo" style="width: 200px; height: 30px;">
+								<option></option>
+							</select>
+						</div>
+					</td>
+				</tr>
+			</table>
+		</div>
+
+		<div id="content-wrap" class="content-wrap">
+			<div id="container" style="margin: 0 auto 0 auto"></div>
+			<!-- content-wrap ends-->
+		</div>
+		<!-- wrap ends here -->
 	</div>
-<!-- wrap ends here -->
-</div>
 </body>

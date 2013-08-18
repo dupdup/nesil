@@ -49,6 +49,7 @@ public class Application extends Controller {
 	public static Result survey(){
 		return ok(views.html.index.render("doruk"));
 	}	
+	
 	public static Result geores(){
 		return ok(views.html.index2.render("doruk"));
 	}	
@@ -200,6 +201,16 @@ public class Application extends Controller {
 			l.add(new AddressJSON(rs.getString(2),rs.getInt(1)));
 		}
 		return ok(Json.toJson(l));
+	}
+	
+	public static Result verify(String username, String password) throws SQLException{
+			Statement st = DB.getConnection().createStatement();
+			ResultSet rs = st.executeQuery("select * from user where code ='"+username+"' and name='"+password +"'");
+			if(rs == null || rs.next() == false){
+			return ok(Json.toJson("{ \"result\":\"false\"} "));
+			}else{
+				return ok("true");
+			}
 	}
 
 }
