@@ -74,11 +74,32 @@ var we = {url:"/results/",success:function(results){
 					}]
 				});
 			}
+			$("#container"+j).html($("#container"+j).html()+"<div><button id=\"popup"+j+"\">map</button></div>")
+			
+			$("#popup"+j).colorbox({inline:true, href:$('#map_canvas')});			
 		}
 	}};
 
 we.url="/results/0/0";
 $.ajax(we);
+
+$('#map_canvas').gmap({'zoom': 2, 'disableDefaultUI':true}).bind('init', function(evt, map) { 
+	var bounds = map.getBounds();
+	var southWest = bounds.getSouthWest();
+	var northEast = bounds.getNorthEast();
+	var lngSpan = northEast.lng() - southWest.lng();
+	var latSpan = northEast.lat() - southWest.lat();
+	for ( var i = 0; i < 1000; i++ ) {
+		var lat = southWest.lat() + latSpan * Math.random();
+		var lng = southWest.lng() + lngSpan * Math.random();
+		$('#map_canvas').gmap('addMarker', { 
+			'position': new google.maps.LatLng(lat, lng) 
+		}).click(function() {
+			$('#map_canvas').gmap('openInfoWindow', { content : 'Hello world!' }, this);
+		});
+	}
+	$('#map_canvas').gmap('set', 'MarkerClusterer', new MarkerClusterer(map, $(this).gmap('get', 'markers')));
+});
 
 $("#towncombo").select2({width:200, placeholder:"ilçe"
 	,triggerChange:true,allowClear:true})

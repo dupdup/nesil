@@ -19,6 +19,7 @@ body {
 	color: #666666; 
 	text-align: center;
 	margin: 15px 0;
+	z-index:-1
 }
 
 /* links */
@@ -231,7 +232,6 @@ textarea {
 	border-top: 5px solid #FFF;
 	border-bottom: 2px solid #D0D0D0;
 	display: inline;
-	z-index:-1;
 	margin: 0 auto 0 auto;
 }
 #header {
@@ -408,6 +408,6 @@ textarea {
 	border-color: black;
 	float: left;
 	width: 400;
-    height: 400;
+    height: 420;
     margin: 0 auto 0 auto;
 }
