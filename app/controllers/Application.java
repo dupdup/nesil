@@ -109,26 +109,18 @@ public class Application extends Controller {
 			// LinkedList<com.isurveysoft.www.servicesv5.Result>();
 			boolean onRegion = true;
 			if (town > 0)
-				for (com.isurveysoft.www.servicesv5.Result res : sr
-						.getScreenResults()) {
-					if (res.getScreenId() == filterScreenId
-							&& res.getResultAnswer() != null
-							&& res.getResultAnswer().length() > 0) {
+				for (com.isurveysoft.www.servicesv5.Result res : sr.getScreenResults()) {
+					if (res.getScreenId() == filterScreenId&& res.getResultAnswer() != null&& res.getResultAnswer().length() > 0) {
 						if (district > 0) {
-							onRegion = district % 10 == res.getResultAnswer()
-									.codePointAt(0) % 10;
-						} else {
-							onRegion = town % 5 == res.getResultAnswer()
-									.codePointAt(0) % 5;
+							onRegion = district % 10 == res.getResultAnswer().codePointAt(0) % 10;
+						} else if(surveyMainLocType!=2){
+							onRegion = town % 5 == res.getResultAnswer().codePointAt(0) % 5;
 						}
 					}
 				}
 			if (onRegion)
-				for (com.isurveysoft.www.servicesv5.Result res : sr
-						.getScreenResults()) {
-					Tuple<Long, Long> tuple = new Tuple<Long, Long>(
-							res.getQuestionId() == null ? res.getScreenId()
-									: res.getQuestionId(), res.getAnswerId());
+				for (com.isurveysoft.www.servicesv5.Result res : sr.getScreenResults()) {
+					Tuple<Long, Long> tuple = new Tuple<Long, Long>(res.getQuestionId() == null ? res.getScreenId(): res.getQuestionId(), res.getAnswerId());
 					Integer c = ansMap.get(tuple);
 					if (c == null)
 						ansMap.put(tuple, 1);
@@ -252,16 +244,14 @@ public class Application extends Controller {
 	public static Result getTowns() throws SQLException {
 		if (surveyMainLocType == 2) {
 			Statement st = DB.getConnection().createStatement();
-			ResultSet rs = st.executeQuery("select name from town where id ="
-					+ surveyMainLocId);
+			ResultSet rs = st.executeQuery("select name from town where id ="+ surveyMainLocId);
 			rs.next();
-			return ok(Json.toJson(new AddressJSON(rs.getString(1),
-					surveyMainLocId)));
+			LinkedList<AddressJSON> l = new LinkedList<AddressJSON>();
+			l.add(new AddressJSON(rs.getString(1),surveyMainLocId));
+			return ok(Json.toJson(l));
 		}
 		Statement st = DB.getConnection().createStatement();
-		ResultSet rs = st
-				.executeQuery("select id,name from town where cityid ="
-						+ surveyMainLocId);
+		ResultSet rs = st.executeQuery("select id,name from town where cityid ="+ surveyMainLocId);
 		List<AddressJSON> l = new LinkedList<AddressJSON>();
 		while (rs.next()) {
 			l.add(new AddressJSON(rs.getString(2), rs.getInt(1)));
@@ -272,8 +262,7 @@ public class Application extends Controller {
 	public static Result verify(String username, String password)
 			throws SQLException {
 		Statement st = DB.getConnection().createStatement();
-		ResultSet rs = st.executeQuery("select * from user where code ='"
-				+ username + "' and name='" + password + "'");
+		ResultSet rs = st.executeQuery("select * from user where code ='"+ username + "' and name='" + password + "'");
 		if (rs == null || rs.next() == false) {
 			return ok(Json.toJson("{ \"result\":\"false\"} "));
 		} else {

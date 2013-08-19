@@ -29,12 +29,6 @@ function loginSurvey(){
 }
 
 function init(){
-$.ajax({url:"/area",async: false,success:function(res){
-	$.each(res, function(i,n){
-		var x =$('<option>').val(n.code).text(n.text);
-		x.appendTo('#towncombo');
-	});
-}});
 
 var we = {url:"/results/",success:function(results){
 		chartCount = results.length;
@@ -111,8 +105,6 @@ var we = {url:"/results/",success:function(results){
 	}};
 we.url="/results/0/0";
 $.ajax(we);
-
-
 $("#towncombo").select2({width:200, placeholder:"ilçe",triggerChange:true,allowClear:true})
 	.on('change',function(x){
 		if(x.added){
@@ -126,12 +118,12 @@ $("#towncombo").select2({width:200, placeholder:"ilçe",triggerChange:true,allow
 				});
 			}});
 		}else{
-			we.url="/results/0"+"/0";
+			we.url="/results/0/0";
 			$.ajax(we);
 			$('#districtcombo').html("<option></option>");
 			$("#districtcombo").select2("val","");
 		}
-	});
+});
 $("#districtcombo").select2({width:200, placeholder:"köy/mahalle/belde"
 	,triggerChange:true,allowClear:true}).on('change',function(x){
 		if(x.added){
@@ -142,6 +134,15 @@ $("#districtcombo").select2({width:200, placeholder:"köy/mahalle/belde"
 			$.ajax(we);
 		}
 	});
+$.ajax({url:"/area",async:false,success:function(res){
+	$.each(res, function(i,n){
+		var x =$('<option>').val(n.code).text(n.text);
+		x.appendTo('#towncombo');
+	});
+	if(res.length==1){
+		$("#towncombo").select2('val',res[0].code);
+	}
+}});
 }
 function clearMap(){
 //	$('#map_canvas').hide();
