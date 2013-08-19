@@ -76,7 +76,6 @@ public class Application extends Controller {
 		}
 		SurveyResult[] cachedResults = (SurveyResult[]) Cache.get(user+ "answer");
 		if (cachedResults == null || cachedResults.length < 1) {
-			System.out.println(fromDate.toString());
 			cachedResults = service.getExportServiceSoap().exportSurveyResults(surveyCP, surveyPin, fromDate.toString(),toDate.toString(), 0l);
 			Cache.set(user + "answer", cachedResults);
 		}
@@ -91,12 +90,9 @@ public class Application extends Controller {
 	public static Result geoResults(long screenId) throws RemoteException, ServiceException {
 		ExportService service = new ExportServiceLocator();
 		@SuppressWarnings("unchecked")
-		List<GeoAnswerJSON> cached = (List<GeoAnswerJSON>) Cache.get(user
-				+ "geo" + screenId);
+		List<GeoAnswerJSON> cached = (List<GeoAnswerJSON>) Cache.get(user+ "geo" + screenId);
 		if (cached == null || cached.size() < 1) {
-			SurveyResult[] results = service.getExportServiceSoap()
-					.exportSurveyResults(surveyCP, surveyPin,
-							fromDate.toString(), toDate.toString(), 0l);
+			SurveyResult[] results = service.getExportServiceSoap().exportSurveyResults(surveyCP, surveyPin,fromDate.toString(), toDate.toString(), 0l);
 			cached = toGeoJsonFormat(screenId, results);
 			Cache.set(user + "geo" + screenId, cached);
 		}
