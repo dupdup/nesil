@@ -183,12 +183,11 @@ public class Application extends Controller {
 		return list;
 	}
 
-	private static List<GeoAnswerJSON> toGeoJsonFormat(long screenId,
-			SurveyResult[] results) {
+	private static List<GeoAnswerJSON> toGeoJsonFormat(long screenId,SurveyResult[] results) {
 		List<GeoAnswerJSON> list = new LinkedList<GeoAnswerJSON>();
 		for(SurveyResult sr:results){
 			for(com.isurveysoft.www.servicesv5.Result res : sr.getScreenResults()){
-				if(res.getScreenId()==screenId&&res.getAnswerId()!=null){
+				if(res.getScreenId()==screenId&&res.getAnswerId()!=null&&sr.getResultLocationLatitude()!=0&&sr.getResultLocationLongitude()!=0){
 					list.add(new GeoAnswerJSON(sr.getResultLocationLatitude()+"",
 							sr.getResultLocationLongitude()+"",sr.getResultLocationAltitude()+"",new AnswerJSON(res.getResultAnswer(),res.getAnswerId(),1)));
 				}
@@ -198,42 +197,13 @@ public class Application extends Controller {
 	}
 
 	public static Result nesil(String userId) throws SQLException {
-		user = userId;
-		Statement st = DB.getConnection().createStatement();
-		ResultSet rs = st
-				.executeQuery("select s.pin,s.id,s.cp,s.locid,s.loctype,s.fromdate,s.todate from user u,survey s where s.usercode = u.code and u.code = '"
-						+ user + "'");
-		rs.next();
-		surveyPin = rs.getString(1);
-		surveyCP = rs.getString(3);
-		surveyMainLocId = rs.getInt(4);
-		surveyMainLocType = rs.getInt(5);
-		fromDate = rs.getDate(6);
-		toDate = rs.getDate(7);
-		int surveyId = rs.getInt(2);
-		st = DB.getConnection().createStatement();
-		rs = st.executeQuery("select q.screenid,q.quetype,q.charttype from survey s, question q where q.surveyid = "
-				+ surveyId);
-		while (rs.next()) {
-			if (rs.getInt(2) == 2) {
-				chartQuestions.put(rs.getLong(1), rs.getInt(3));
-			} else if (rs.getInt(2) == 1) {
-				descQuestions.put(rs.getLong(1), rs.getInt(3));
-			}
-		}
-		st = DB.getConnection().createStatement();
-		rs = st.executeQuery("select q.screenid from survey s, question q where q.quetype = 5 and q.surveyid = "
-				+ surveyId);
-		rs.next();
-		filterScreenId = rs.getLong(1);
+
 		return survey();
 	}
 
 	public static Result getDistricts(int townid) throws SQLException {
 		Statement st = DB.getConnection().createStatement();
-		ResultSet rs = st
-				.executeQuery("select id,name from district where townid ="
-						+ townid);
+		ResultSet rs = st.executeQuery("select id,name from district where townid ="+ townid);
 		List<AddressJSON> l = new LinkedList<AddressJSON>();
 		while (rs.next()) {
 			l.add(new AddressJSON(rs.getString(2), rs.getInt(1)));
@@ -266,6 +236,30 @@ public class Application extends Controller {
 		if (rs == null || rs.next() == false) {
 			return ok(Json.toJson("{ \"result\":\"false\"} "));
 		} else {
+			user = username;
+			st = DB.getConnection().createStatement();
+			rs = st.executeQuery("select s.pin,s.id,s.cp,s.locid,s.loctype,s.fromdate,s.todate from user u,survey s where s.usercode = u.code and u.code = '"+ user + "'");
+			rs.next();
+			surveyPin = rs.getString(1);
+			surveyCP = rs.getString(3);
+			surveyMainLocId = rs.getInt(4);
+			surveyMainLocType = rs.getInt(5);
+			fromDate = rs.getDate(6);
+			toDate = rs.getDate(7);
+			int surveyId = rs.getInt(2);
+			st = DB.getConnection().createStatement();
+			rs = st.executeQuery("select q.screenid,q.quetype,q.charttype from survey s, question q where q.surveyid = "+ surveyId);
+			while (rs.next()) {
+				if (rs.getInt(2) == 2) {
+					chartQuestions.put(rs.getLong(1), rs.getInt(3));
+				} else if (rs.getInt(2) == 1) {
+					descQuestions.put(rs.getLong(1), rs.getInt(3));
+				}
+			}
+			st = DB.getConnection().createStatement();
+			rs = st.executeQuery("select q.screenid from survey s, question q where q.quetype = 5 and q.surveyid = "+ surveyId);
+			rs.next();
+			filterScreenId = rs.getLong(1);
 			return ok("true");
 		}
 	}
