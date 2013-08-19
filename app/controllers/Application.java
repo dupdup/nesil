@@ -69,10 +69,15 @@ public class Application extends Controller {
 		}
 		SurveyResult[] cachedResults =(SurveyResult[]) Cache.get(user+"answer");
 		if(cachedResults==null||cachedResults.length<1){
-			cachedResults = service.getExportServiceSoap().exportSurveyResults(surveyCP, surveyPin ,"2013-07-27 16:24:42","2013-07-28 23:24:42",0l);
+			cachedResults = service.getExportServiceSoap().exportSurveyResults(surveyCP, surveyPin ,"2013-06-07 16:24:42","2013-06-08 23:24:42",0l);
 			Cache.set(user+"answer",cachedResults);
 		}
 		return ok(Json.toJson(toJsonFormat(cachedScreens,cachedResults,town,district)));
+	}
+	public static Result clearCache(){
+		Cache.remove(user+"screen");
+		Cache.remove(user+"answer");
+		return ok("");
 	}
 	public static Result geoResults(long screenId) throws RemoteException, ServiceException {
 		ExportService service = new ExportServiceLocator();
@@ -125,8 +130,9 @@ public class Application extends Controller {
 			if(screen.getQuestions()!=null && screen.getQuestions().length>0){
 				for(Question q : screen.getQuestions()){
 					QuestionJSON que = new QuestionJSON();
+					que.setScreenId(screen.getScreenId());
 					que.setText(q.getQuestionText());
-					que.setType(chartQuestions.get(screen.getScreenId()));
+					que.setType(3);
 					List<AnswerJSON> ansList = new LinkedList<AnswerJSON>();	
 					for(Long x : ansTextMap.keySet()){
 						Tuple<Long, Long> key = new Tuple<Long,Long>(q.getQuestionId(),x);
@@ -145,6 +151,7 @@ public class Application extends Controller {
 			else{
 				QuestionJSON que = new QuestionJSON();
 				que.setText(screen.getScreenText());
+				que.setScreenId(screen.getScreenId());
 				que.setType(chartQuestions.get(screen.getScreenId()));
 				List<AnswerJSON> ansList = new LinkedList<AnswerJSON>();
 				for(Long x : ansTextMap.keySet()){
@@ -170,9 +177,10 @@ public class Application extends Controller {
 		List<GeoAnswerJSON> list = new LinkedList<GeoAnswerJSON>();
 		for(SurveyResult sr:results){
 			for(com.isurveysoft.www.servicesv5.Result res : sr.getScreenResults()){
-				if(res.getScreenId()==screenId)
+				if(res.getScreenId()==screenId&&res.getAnswerId()!=null){
 					list.add(new GeoAnswerJSON(sr.getResultLocationLatitude()+"",
 							sr.getResultLocationLongitude()+"",sr.getResultLocationAltitude()+"",new AnswerJSON(res.getResultAnswer(),res.getAnswerId(),1)));
+				}
 			}
 		}
 		return list;

@@ -13,6 +13,7 @@ GET     /geores                         controllers.Application.geores()
 GET     /verify/:username/:password                     controllers.Application.verify(username:String,password:String)
 GET		/georesults/:screenId			controllers.Application.geoResults(screenId:Long)
 GET		/area							controllers.Application.getTowns()
+GET		/clearcache							controllers.Application.clearCache()
 GET		/area/:townid					controllers.Application.getDistricts(townid:Int)
 
 # Map static resources from the /public folder to the /assets URL path

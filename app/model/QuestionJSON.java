@@ -3,6 +3,7 @@ package model;
 import java.util.List;
 
 public class QuestionJSON {
+	private long screenId;
 	private String text;
 	private int type;
 	private List<AnswerJSON> answer;
@@ -25,6 +26,12 @@ public class QuestionJSON {
 	}
 	public void setAnswer(List<AnswerJSON> answer) {
 		this.answer = answer;
+	}
+	public long getScreenId() {
+		return screenId;
+	}
+	public void setScreenId(long screenId) {
+		this.screenId = screenId;
 	} 
 
 

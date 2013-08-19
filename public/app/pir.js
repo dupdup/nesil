@@ -11,7 +11,6 @@ function loginSurvey(){
 		alert("Kullanici adı ve Sifre alanlarını doldurunuz.");
 	}
 	$.ajax({url:"/verify/"+user+"/"+pass,success:function(res){
-		console.log(res);
 		if(res === "true"){
 			$.ajax({url:"/nesil"+"/"+user,async: false,success:function(res){
 				
@@ -105,34 +104,16 @@ var we = {url:"/results/",success:function(results){
 					}]
 				});
 			}
-			$("#container"+j).html($("#container"+j).html()+"<div><button id=\"popup"+j+"\">map</button></div>")
-			
-			$("#popup"+j).colorbox({inline:true, href:$('#map_canvas')});			
+			$("#container"+j).append("<div><button screenid=\""+results[j].screenId+"\" id=\"popup"+j+"\">map</button></div>");
+//			$('#map_canvas') $(document).bind('cbox_complete', function(){ setTimeout($.colorbox.next, 1500); });
+			$("#popup"+j).colorbox({inline:true,onOpen:function(){loadMap($(this).attr("screenid"));},onClosed:clearMap,href: $('#map_canvas')});			
 		}
 	}};
 we.url="/results/0/0";
 $.ajax(we);
 
-$('#map_canvas').gmap({'zoom': 2, 'disableDefaultUI':true}).bind('init', function(evt, map) { 
-	var bounds = map.getBounds();
-	var southWest = bounds.getSouthWest();
-	var northEast = bounds.getNorthEast();
-	var lngSpan = northEast.lng() - southWest.lng();
-	var latSpan = northEast.lat() - southWest.lat();
-	for ( var i = 0; i < 1000; i++ ) {
-		var lat = southWest.lat() + latSpan * Math.random();
-		var lng = southWest.lng() + lngSpan * Math.random();
-		$('#map_canvas').gmap('addMarker', { 
-			'position': new google.maps.LatLng(lat, lng) 
-		}).click(function() {
-			$('#map_canvas').gmap('openInfoWindow', { content : 'Hello world!' }, this);
-		});
-	}
-	$('#map_canvas').gmap('set', 'MarkerClusterer', new MarkerClusterer(map, $(this).gmap('get', 'markers')));
-});
 
-$("#towncombo").select2({width:200, placeholder:"ilçe"
-	,triggerChange:true,allowClear:true})
+$("#towncombo").select2({width:200, placeholder:"ilçe",triggerChange:true,allowClear:true})
 	.on('change',function(x){
 		if(x.added){
 			we.url="/results/"+x.added.id+"/0";
@@ -162,7 +143,40 @@ $("#districtcombo").select2({width:200, placeholder:"köy/mahalle/belde"
 		}
 	});
 }
-
+function clearMap(){
+//	$('#map_canvas').hide();
+}
+function loadMap(screenid){
+	var x;
+	$.ajax({url:"/georesults/"+screenid,success:function(res){
+		console.log(res);
+		var clrs =['aqua','blue','crimson','blueviolet','yellow','GreenYellow','Magenta','Navy']
+		
+		var ra = [];
+		$('#map_canvas').gmap({'zoom': 15,'center':res[1].lat+","+res[1].lng}).bind('init', function(evt, map) { 
+			$.each(res,function(i,r){
+//				 var newIcon = MapIconMaker.createFlatIcon({width: 64, height: 64, primaryColor: "#00ff00"});
+				var ri = $.inArray(r.answer.code, ra);
+				if(ri<0){
+					ri = ra.push(r.answer.code)-1;
+				}
+				var goldStar = {
+						  path: google.maps.SymbolPath.CIRCLE,
+						  fillOpacity: 1.8,
+						  scale: 1,
+						  strokeWeight: 10,
+						  fillColor:clrs[ri%8],
+						  strokeColor:clrs[ri%8]
+				};
+				$('#map_canvas').gmap('addMarker', { 
+					'position': new google.maps.LatLng(r.lat,r.lng),icon:goldStar,title:r.answer.text
+				})
+			});
+//			$('#map_canvas').gmap('set', 'MarkerClusterer', new MarkerClusterer(map, $(this).gmap('get', 'markers')));
+		});	
+	}});
+	
+}
 function createBar(id, result){
 	var t=[];
 	var c=[];
