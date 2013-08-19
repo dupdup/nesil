@@ -410,11 +410,9 @@ textarea {
 .clear { clear: both; }
 
 .page-chart {
-	border-width: 1px;
-	-moz-border-radius: 20px;
- 	border-radius: 20px;
+	border-width: 2px;
 	border-style: double; 
-	border-color: gray;
+	border-color: black;
 	float: left;
 	width: 400;
     height: 420;
