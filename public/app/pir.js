@@ -148,37 +148,44 @@ function loadMap(screenid){
 	var x = $("#map_canvas").gmap('get', 'markers')
 	$.each(x,function(i,a){a.setMap(null);});
 	$.ajax({url:"/georesults/"+screenid,success:function(res){
-		console.log(res);
-		var clrs =['aqua','blue','crimson','blueviolet','yellow','GreenYellow','Magenta','Azure']
-		var ra = [];
-		$('#map_canvas').gmap({'zoom': 15,'center':res[1].lat+","+res[1].lng})
-//		$('#map_canvas').gmap({'zoom': 15,'center':res[1].lat+","+res[1].lng}).bind('init', function(evt, map) { 
-			$.each(res,function(i,r){
-//				 var newIcon = MapIconMaker.createFlatIcon({width: 64, height: 64, primaryColor: "#00ff00"});
-				var ri = $.inArray(r.answer.code, ra);
-				if(ri<0){
-					ri = ra.push(r.answer.code)-1;
-				}
-				if(i==1){
-					$("#map_canvas").gmap('option','center',new google.maps.LatLng(r.lat, r.lng));
-				}
-				var goldStar = {
-						  path: google.maps.SymbolPath.CIRCLE,
-						  fillOpacity: 1.8,
-						  scale: 5,
-//						  strokeWeight: 10,
-						  fillColor:clrs[ri%clrs.length],
-						  strokeColor:clrs[ri%clrs.length]
-				};
-				$('#map_canvas').gmap('addMarker', { 
-					'position': new google.maps.LatLng(r.lat,r.lng),icon:goldStar,title:r.answer.text
-				});
-//			});
-//			$('#map_canvas').gmap('set', 'MarkerClusterer', new MarkerClusterer(map, $(this).gmap('get', 'markers')));
-		});	
+		if(x.length<2){
+			console.log("onc");
+			$('#map_canvas').gmap({'zoom': 15,'center':res[1].lat+","+res[1].lng}).bind('init', function(evt, map) {
+				console.log("once");
+				addMarkers(res)
+			//			$('#map_canvas').gmap('set', 'MarkerClusterer', new MarkerClusterer(map, $(this).gmap('get', 'markers')));
+				});}
+		else 
+			addMarkers(res);
 	}});
+}
+function addMarkers(rt){
+	var clrs =['aqua','blue','crimson','blueviolet','yellow','GreenYellow','Magenta','Azure']
+	var ra = [];
+	$.each(rt,function(i,r){
+//		var newIcon = MapIconMaker.createFlatIcon({width: 64, height: 64, primaryColor: "#00ff00"});
+		var ri = $.inArray(r.answer.code, ra);
+		if(ri<0){
+			ri = ra.push(r.answer.code)-1;
+		}
+		if(i==0){
+			$("#map_canvas").gmap('option','center',new google.maps.LatLng(r.lat, r.lng));
+		}
+		var goldStar = {
+				path: google.maps.SymbolPath.CIRCLE,
+				fillOpacity: 1.8,
+				scale: 5,
+//				strokeWeight: 10,
+				fillColor:clrs[ri%clrs.length],
+				strokeColor:clrs[ri%clrs.length]
+		};
+		$('#map_canvas').gmap('addMarker', { 
+			'position': new google.maps.LatLng(r.lat,r.lng),icon:goldStar,title:r.answer.text
+		});
+	});
 	
 }
+
 function createBar(id, result){
 	var t=[];
 	var c=[];
