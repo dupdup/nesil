@@ -34,6 +34,7 @@ import com.isurveysoft.www.servicesv5.SurveyResult;
 public class Application extends Controller {
 	private static Map<Long, Integer> chartQuestions = new HashMap<Long, Integer>();
 	private static Map<Long, Integer> descQuestions = new HashMap<Long, Integer>();
+	private static Map<Integer,Integer> mahalleilce = new HashMap<Integer, Integer>();
 	private static String user;
 	private static String surveyPin;
 	private static String surveyCP;
@@ -76,7 +77,8 @@ public class Application extends Controller {
 		}
 		SurveyResult[] cachedResults = (SurveyResult[]) Cache.get(user+ "answer");
 		if (cachedResults == null || cachedResults.length < 1) {
-			cachedResults = service.getExportServiceSoap().exportSurveyResults(surveyCP, surveyPin, fromDate.toString(),toDate.toString(), 0l);
+			cachedResults = service.getExportServiceSoap().exportSurveyResults(surveyCP, surveyPin,fromDate.toString(), toDate.toString(), 0l);
+//			cachedResults = service.getExportServiceSoap().exportSurveyResults(surveyCP, surveyPin, "2013-08-22 15:11:42","2013-09-20 00:11:42", 0l);
 			Cache.set(user + "answer", cachedResults);
 		}
 		return ok(Json.toJson(toJsonFormat(cachedScreens, cachedResults, town,
@@ -99,22 +101,26 @@ public class Application extends Controller {
 		return ok(Json.toJson(cached));
 	}
 
-	private static List<QuestionJSON> toJsonFormat(Screen[] screens,
-			SurveyResult[] results, int town, int district) {
+	private static List<QuestionJSON> toJsonFormat(Screen[] screens,SurveyResult[] results, int town, int district) {
 		List<QuestionJSON> list = new LinkedList<QuestionJSON>();
 		List<QuestionJSON> listMultiQue = new LinkedList<QuestionJSON>();
 		HashMap<Tuple<Long, Long>, Integer> ansMap = new HashMap<Tuple<Long, Long>, Integer>();
 		for (SurveyResult sr : results) {
-			// LinkedList<com.isurveysoft.www.servicesv5.Result> l = new
-			// LinkedList<com.isurveysoft.www.servicesv5.Result>();
 			boolean onRegion = true;
 			if (town > 0)
 				for (com.isurveysoft.www.servicesv5.Result res : sr.getScreenResults()) {
 					if (res.getScreenId() == filterScreenId&& res.getResultAnswer() != null&& res.getResultAnswer().length() > 0) {
+						String clearedFromChars = res.getResultAnswer().replaceAll("[\\D]", "");
+						System.out.println(clearedFromChars);
+						if(clearedFromChars.length()==0){
+							onRegion=false;
+							break;
+						}
 						if (district > 0) {
-							onRegion = district % 10 == res.getResultAnswer().codePointAt(0) % 10;
+							onRegion = district==Integer.parseInt(clearedFromChars);
 						} else if(surveyMainLocType!=2){
-							onRegion = town % 5 == res.getResultAnswer().codePointAt(0) % 5;
+							Integer townofdistrict = mahalleilce.get(Integer.parseInt(clearedFromChars));
+							onRegion = town == (townofdistrict==null?-1:townofdistrict);
 						}
 					}
 				}
@@ -203,7 +209,7 @@ public class Application extends Controller {
 
 	public static Result getDistricts(int townid) throws SQLException {
 		Statement st = DB.getConnection().createStatement();
-		ResultSet rs = st.executeQuery("select id,name from district where townid ="+ townid);
+		ResultSet rs = st.executeQuery("select code,name from district where townid ="+ townid);
 		List<AddressJSON> l = new LinkedList<AddressJSON>();
 		while (rs.next()) {
 			l.add(new AddressJSON(rs.getString(2), rs.getInt(1)));
@@ -260,6 +266,12 @@ public class Application extends Controller {
 			rs = st.executeQuery("select q.screenid from survey s, question q where q.quetype = 5 and q.surveyid = "+ surveyId);
 			rs.next();
 			filterScreenId = rs.getLong(1);
+			st = DB.getConnection().createStatement();
+			String sql = "select d.code,t.id from district d, town t where d.townid=t.id and "+(surveyMainLocType==2?"t.id =":"t.cityid =")+surveyMainLocId;
+			rs = st.executeQuery(sql);
+			while (rs.next()) {
+					mahalleilce.put(rs.getInt(1), rs.getInt(2));
+			}
 			return ok("true");
 		}
 	}
