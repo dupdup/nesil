@@ -1,29 +1,9 @@
 $(function () {
-$('#header-photo').hide();
+	init();
+	$('#login').hide();
+	$('#header-photo').show();
+	$('#wrap').show();
 });
-
-function loginSurvey(){
-	console.log(document.getElementById("user").value);
-	console.log(document.getElementById("pass").value);
-	user= document.getElementById("user").value;
-	pass = document.getElementById("pass").value;
-	if(user == "" || pass == ""){
-		alert("Kullanici adı ve Sifre alanlarını doldurunuz.");
-	}
-	$.ajax({url:"/verify/"+user+"/"+pass,success:function(res){
-		if(res === "true"){
-			init();
-			$('#login').hide();
-			$('#header-photo').show();
-			$('#wrap').show();
-		}else{
-			alert("Giris basarisiz. Lütfen tekrar deneyiniz.");
-			document.getElementById("pass").value = "";
-			document.getElementById("user").value = "";
-		}
-			
-	}});
-}
 
 function init(){
 

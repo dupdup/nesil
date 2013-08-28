@@ -22,6 +22,7 @@ import play.cache.Cache;
 import play.db.DB;
 import play.libs.Json;
 import play.mvc.Controller;
+import play.mvc.Http.Response;
 import play.mvc.Result;
 
 import com.isurveysoft.www.servicesv5.Answer;
@@ -291,7 +292,12 @@ public class Application extends Controller {
 			while (rs.next()) {
 					mahalleilce.put(rs.getInt(1), rs.getInt(2));
 			}
-			return ok("true");
+//		    response().setHeader("Access-Control-Allow-Origin", "*");       // Need to add the correct domain in here!!
+//		    response().setHeader("Access-Control-Allow-Methods", "GET");   // Only allow POST
+//		    response().setHeader("Access-Control-Max-Age", "300");          // Cache response for 5 minutes
+//		    response().setHeader("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");         // Ensure this header is also allowed!  
+			//return ok("true");
+			return ok(views.html.index.render("doruk"));
 		}
 	}
 
