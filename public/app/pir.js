@@ -9,7 +9,7 @@ function init(){
 
 var we = {url:"/results/",
 		beforeSend: function() {
-		    $('#container').html("<img src='assets/images/loading.gif' />");
+		    $('#container').html("<img src='/assets/images/loading.gif' />");
 		  },
 		success:function(results){
 		chartCount = results.length;
