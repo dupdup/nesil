@@ -4,6 +4,7 @@ import java.rmi.RemoteException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -35,6 +36,7 @@ public class Application extends Controller {
 	private static Map<Long, Integer> chartQuestions = new HashMap<Long, Integer>();
 	private static Map<Long, Integer> descQuestions = new HashMap<Long, Integer>();
 	private static Map<Integer,Integer> mahalleilce = new HashMap<Integer, Integer>();
+	private static List<Integer> allDistricts = java.util.Collections.synchronizedList(new ArrayList<Integer>());
 	private static String user;
 	private static String surveyPin;
 	private static String surveyCP;
@@ -116,6 +118,7 @@ public class Application extends Controller {
 							onRegion=false;
 							break;
 						}
+						allDistricts.add(Integer.parseInt(clearedFromChars));
 						if (district > 0) {
 							onRegion = district==Integer.parseInt(clearedFromChars);
 						} else if(surveyMainLocType!=2){
@@ -212,7 +215,23 @@ public class Application extends Controller {
 		ResultSet rs = st.executeQuery("select code,name from district where townid ="+ townid);
 		List<AddressJSON> l = new LinkedList<AddressJSON>();
 		while (rs.next()) {
-			l.add(new AddressJSON(rs.getString(2), rs.getInt(1)));
+			if(allDistricts !=null && allDistricts.size()>0 && allDistricts.contains(rs.getInt(1))){
+				l.add(new AddressJSON(rs.getString(2), rs.getInt(1)));
+			}
+		}
+		//kayıtlı olmayan mahalle kodları
+		if(allDistricts !=null && allDistricts.size()>0){
+			List<Integer> unique = new ArrayList<Integer>();
+			for(int code:allDistricts){
+				if(!unique.contains(code)){
+					unique.add(code);
+				}
+			}
+			for(int code:unique){
+				AddressJSON toAdd = new AddressJSON(String.valueOf(code), code);
+				if(!l.contains(toAdd))
+					l.add(toAdd);
+			}
 		}
 		return ok(Json.toJson(l));
 	}
