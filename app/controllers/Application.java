@@ -42,6 +42,7 @@ public class Application extends Controller {
 	private static String surveyCP;
 	private static long filterScreenId;
 	private static int surveyMainLocId;
+	private static int surveyUndefinedTownId;
 	private static int surveyMainLocType;
 	private static Date fromDate;
 	private static Date toDate;
@@ -112,9 +113,8 @@ public class Application extends Controller {
 			if (town > 0)
 				for (com.isurveysoft.www.servicesv5.Result res : sr.getScreenResults()) {
 					if (res.getScreenId() == filterScreenId&& res.getResultAnswer() != null&& res.getResultAnswer().length() > 0) {
-						String clearedFromChars = res.getResultAnswer().replaceAll("[\\D]", "");
-						System.out.println(clearedFromChars);
-						if(clearedFromChars.length()==0){
+						String clearedFromChars = res.getResultAnswer().replaceAll("[\\D]", "").replaceFirst ("^0*", "");
+						if(clearedFromChars.length()==0||clearedFromChars.length()>3){
 							onRegion=false;
 							break;
 						}
@@ -123,7 +123,7 @@ public class Application extends Controller {
 							onRegion = district==Integer.parseInt(clearedFromChars);
 						} else if(surveyMainLocType!=2){
 							Integer townofdistrict = mahalleilce.get(Integer.parseInt(clearedFromChars));
-							onRegion = town == (townofdistrict==null?-1:townofdistrict);
+							onRegion = town == (townofdistrict==null?surveyUndefinedTownId:townofdistrict);
 						}
 					}
 				}
@@ -173,8 +173,7 @@ public class Application extends Controller {
 				que.setType(chartQuestions.get(screen.getScreenId()));
 				List<AnswerJSON> ansList = new LinkedList<AnswerJSON>();
 				for (Long x : ansTextMap.keySet()) {
-					Tuple<Long, Long> key = new Tuple<Long, Long>(
-							screen.getScreenId(), x);
+					Tuple<Long, Long> key = new Tuple<Long, Long>(screen.getScreenId(), x);
 					AnswerJSON ans = new AnswerJSON();
 					ans.setCode(x);
 					ans.setText(ansTextMap.get(x));
@@ -215,22 +214,20 @@ public class Application extends Controller {
 		ResultSet rs = st.executeQuery("select code,name from district where townid ="+ townid);
 		List<AddressJSON> l = new LinkedList<AddressJSON>();
 		while (rs.next()) {
-			if(allDistricts !=null && allDistricts.size()>0 && allDistricts.contains(rs.getInt(1))){
+			if(allDistricts !=null && allDistricts.contains(rs.getInt(1))){
 				l.add(new AddressJSON(rs.getString(2), rs.getInt(1)));
 			}
 		}
 		//kayıtlı olmayan mahalle kodları
-		if(allDistricts !=null && allDistricts.size()>0){
+		if(townid==surveyUndefinedTownId && allDistricts !=null && allDistricts.size()>0){
 			List<Integer> unique = new ArrayList<Integer>();
 			for(int code:allDistricts){
 				if(!unique.contains(code)){
+					AddressJSON toAdd = new AddressJSON(String.valueOf(code), code);
+					if(!l.contains(toAdd))
+						l.add(toAdd);
 					unique.add(code);
 				}
-			}
-			for(int code:unique){
-				AddressJSON toAdd = new AddressJSON(String.valueOf(code), code);
-				if(!l.contains(toAdd))
-					l.add(toAdd);
 			}
 		}
 		return ok(Json.toJson(l));
@@ -254,8 +251,7 @@ public class Application extends Controller {
 		return ok(Json.toJson(l));
 	}
 
-	public static Result verify(String username, String password)
-			throws SQLException {
+	public static Result verify(String username, String password)throws SQLException {
 		Statement st = DB.getConnection().createStatement();
 		ResultSet rs = st.executeQuery("select * from user where code ='"+ username + "' and name='" + password + "'");
 		if (rs == null || rs.next() == false) {
@@ -263,14 +259,16 @@ public class Application extends Controller {
 		} else {
 			user = username;
 			st = DB.getConnection().createStatement();
-			rs = st.executeQuery("select s.pin,s.id,s.cp,s.locid,s.loctype,s.fromdate,s.todate from user u,survey s where s.usercode = u.code and u.code = '"+ user + "'");
+			rs = st.executeQuery("select s.pin,s.id,s.cp,s.locid,s.loctype,s.fromdate,s.todate,s.undefinedtownid from user u,survey s where s.usercode = u.code and u.code = '"+ user + "'");
 			rs.next();
+			
 			surveyPin = rs.getString(1);
 			surveyCP = rs.getString(3);
 			surveyMainLocId = rs.getInt(4);
 			surveyMainLocType = rs.getInt(5);
 			fromDate = rs.getDate(6);
 			toDate = rs.getDate(7);
+			surveyUndefinedTownId = rs.getInt(8); 
 			int surveyId = rs.getInt(2);
 			st = DB.getConnection().createStatement();
 			rs = st.executeQuery("select q.screenid,q.quetype,q.charttype from survey s, question q where q.surveyid = "+ surveyId);
