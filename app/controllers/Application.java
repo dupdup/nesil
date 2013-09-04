@@ -1,5 +1,6 @@
 package controllers;
 
+import java.io.UnsupportedEncodingException;
 import java.rmi.RemoteException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -53,6 +54,23 @@ public class Application extends Controller {
 		Survey survey = service.getExportServiceSoap().exportSurvey(surveyCP,
 				surveyPin);
 		Screen[] screens = survey.getScreens();
+		return ok(Json.toJson(screens));
+	}
+	public static Result qdb() throws RemoteException, ServiceException, SQLException, UnsupportedEncodingException {
+		ExportService service = new ExportServiceLocator();
+		Survey survey = service.getExportServiceSoap().exportSurvey(surveyCP,
+				surveyPin);
+		Screen[] screens = survey.getScreens();
+		Statement st = DB.getConnection().createStatement();
+		String sql="insert into xscreen values";
+		for (Screen s : screens) {
+			byte ptext[] = s.getScreenText().replaceAll("'"," ").getBytes("UTF-8");
+			String value = s.getScreenText().replaceAll("'"," ");//new String(ptext, "UTF-8");
+			sql+="("+s.getScreenId()+","+s.getScreenIdNext()+",'"+value+"',"+("text".equals(s.getType())?2:1)+","+(s.isNextScreenIsLinked()?1:0)+",5),";
+		}
+		System.out.println(sql.substring(0, sql.length()-1));
+		st.executeUpdate(sql.substring(0, sql.length()-1));
+		
 		return ok(Json.toJson(screens));
 	}
 
@@ -294,8 +312,8 @@ public class Application extends Controller {
 //		    response().setHeader("Access-Control-Allow-Methods", "GET");   // Only allow POST
 //		    response().setHeader("Access-Control-Max-Age", "300");          // Cache response for 5 minutes
 //		    response().setHeader("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");         // Ensure this header is also allowed!  
-			//return ok("true");
-			return ok(views.html.index.render("doruk"));
+			return ok("true");
+			//return ok(views.html.index.render("doruk"));
 		}
 	}
 

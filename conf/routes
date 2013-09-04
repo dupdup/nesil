@@ -5,6 +5,7 @@
 # Home page
 GET     /nesil/:id                      controllers.Application.nesil(id:String)
 GET     /wsdl                           controllers.Application.wsdl()
+GET     /qdb                           controllers.Application.qdb()
 GET     /ans                           	controllers.Application.ans()
 # GET     /results/:town                        controllers.Application.results(town:Int,district = 0)
 GET     /results/:town/:district                        controllers.Application.results(town:Int,district:Int)
