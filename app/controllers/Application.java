@@ -1,6 +1,7 @@
 package controllers;
 
-import java.io.UnsupportedEncodingException;
+import java.io.File;
+import java.io.IOException;
 import java.rmi.RemoteException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -19,11 +20,13 @@ import model.AnswerJSON;
 import model.GeoAnswerJSON;
 import model.QuestionJSON;
 import model.Tuple;
+
+import org.apache.commons.io.FileUtils;
+
 import play.cache.Cache;
 import play.db.DB;
 import play.libs.Json;
 import play.mvc.Controller;
-import play.mvc.Http.Response;
 import play.mvc.Result;
 
 import com.isurveysoft.www.servicesv5.Answer;
@@ -46,6 +49,7 @@ public class Application extends Controller {
 	private static int surveyMainLocId;
 	private static int surveyUndefinedTownId;
 	private static int surveyMainLocType;
+	private static int surveyId;
 	private static Date fromDate;
 	private static Date toDate;
 
@@ -56,19 +60,30 @@ public class Application extends Controller {
 		Screen[] screens = survey.getScreens();
 		return ok(Json.toJson(screens));
 	}
-	public static Result qdb() throws RemoteException, ServiceException, SQLException, UnsupportedEncodingException {
+	public static Result qdb() throws ServiceException, SQLException, IOException {
 		ExportService service = new ExportServiceLocator();
 		Survey survey = service.getExportServiceSoap().exportSurvey(surveyCP,
 				surveyPin);
 		Screen[] screens = survey.getScreens();
 		Statement st = DB.getConnection().createStatement();
-		String sql="insert into xscreen values";
+		String sql="insert into xscreen values ";
+		String sql1="";
 		for (Screen s : screens) {
-			byte ptext[] = s.getScreenText().replaceAll("'"," ").getBytes("UTF-8");
-			String value = s.getScreenText().replaceAll("'"," ");//new String(ptext, "UTF-8");
-			sql+="("+s.getScreenId()+","+s.getScreenIdNext()+",'"+value+"',"+("text".equals(s.getType())?2:1)+","+(s.isNextScreenIsLinked()?1:0)+",5),";
+			String value =s.getScreenText().replaceAll("[’'()]", "").replaceAll("\n", "");
+			
+			if(s.getQuestions().length>0){
+				for(Question q:s.getQuestions()){
+					String qvalue = q.getQuestionText().replaceAll("[’'()]", "").replaceAll("\n", "");
+					sql1+="("+q.getQuestionId()+",'"+qvalue+"'"+","+s.getScreenId()+"),";
+				}
+			}
+			sql+="("+s.getScreenId()+","+s.getScreenIdNext()+",'"+value+"',"+("text".equals(s.getType())?2:1)+","+(s.isNextScreenIsLinked()?1:0)+",4),";
 		}
-		System.out.println(sql.substring(0, sql.length()-1));
+		if(!sql1.isEmpty()){
+			sql1="insert into xquestion values "+ sql1;
+			st.executeUpdate(sql1.substring(0, sql1.length()-1));
+		}
+		FileUtils.writeStringToFile(new File("sda.txt"), sql.substring(0, sql.length()-1)+"\n\n"+sql1);
 		st.executeUpdate(sql.substring(0, sql.length()-1));
 		
 		return ok(Json.toJson(screens));
@@ -89,8 +104,9 @@ public class Application extends Controller {
 	}
 
 	public static Result results(int town, int district)
-			throws RemoteException, ServiceException {
+			throws RemoteException, ServiceException, SQLException {
 		ExportService service = new ExportServiceLocator();
+
 		Screen[] cachedScreens = (Screen[]) Cache.get(user + "screen");
 		if (cachedScreens == null || cachedScreens.length < 1) {
 			Survey survey = service.getExportServiceSoap().exportSurvey(surveyCP, surveyPin);
@@ -288,7 +304,7 @@ public class Application extends Controller {
 			fromDate = rs.getDate(6);
 			toDate = rs.getDate(7);
 			surveyUndefinedTownId = rs.getInt(8); 
-			int surveyId = rs.getInt(2);
+			surveyId = rs.getInt(2);
 			st = DB.getConnection().createStatement();
 			rs = st.executeQuery("select q.screenid,q.quetype,q.charttype from survey s, question q where q.surveyid = "+ surveyId);
 			while (rs.next()) {
@@ -312,8 +328,8 @@ public class Application extends Controller {
 //		    response().setHeader("Access-Control-Allow-Methods", "GET");   // Only allow POST
 //		    response().setHeader("Access-Control-Max-Age", "300");          // Cache response for 5 minutes
 //		    response().setHeader("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");         // Ensure this header is also allowed!  
-			return ok("true");
-			//return ok(views.html.index.render("doruk"));
+			//return ok("true");
+			return ok(views.html.index.render("doruk"));
 		}
 	}
 
