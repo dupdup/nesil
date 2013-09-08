@@ -1,6 +1,7 @@
 package controllers;
 
-import java.io.UnsupportedEncodingException;
+import java.io.File;
+import java.io.IOException;
 import java.rmi.RemoteException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -11,6 +12,11 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import javax.xml.rpc.ServiceException;
 
@@ -21,6 +27,9 @@ import model.QuestionJSON;
 import model.Resultx;
 import model.Screenx;
 import model.Tuple;
+
+import org.joda.time.DateTime;
+
 import play.cache.Cache;
 import play.db.DB;
 import play.libs.Json;
@@ -47,6 +56,7 @@ public class Application extends Controller {
 	private static int surveyMainLocId;
 	private static int surveyUndefinedTownId;
 	private static int surveyMainLocType;
+	private static int surveyId;
 	private static Date fromDate;
 	private static Date toDate;
 
@@ -57,18 +67,29 @@ public class Application extends Controller {
 		Screen[] screens = survey.getScreens();
 		return ok(Json.toJson(screens));
 	}
-	public static Result qdb() throws RemoteException, ServiceException, SQLException, UnsupportedEncodingException {
+	public static Result qdb() throws ServiceException, SQLException, IOException {
 		ExportService service = new ExportServiceLocator();
 		Survey survey = service.getExportServiceSoap().exportSurvey(surveyCP,
 				surveyPin);
 		Screen[] screens = survey.getScreens();
 		Statement st = DB.getConnection().createStatement();
-		String sql="insert into xscreen values";
+		String sql="insert into xscreen values ";
+		String sql1="";
 		for (Screen s : screens) {
-			String value = s.getScreenText().replaceAll("'"," ");//new String(ptext, "UTF-8");
-			sql+="("+s.getScreenId()+","+s.getScreenIdNext()+",'"+value+"',"+("text".equals(s.getType())?2:1)+","+(s.isNextScreenIsLinked()?1:0)+",5),";
+			String value =s.getScreenText().replaceAll("[’'()]", "").replaceAll("\n", "");
+			
+			if(s.getQuestions().length>0){
+				for(Question q:s.getQuestions()){
+					String qvalue = q.getQuestionText().replaceAll("[’'()]", "").replaceAll("\n", "");
+					sql1+="("+q.getQuestionId()+",'"+qvalue+"'"+","+s.getScreenId()+"),";
+				}
+			}
+			sql+="("+s.getScreenId()+","+s.getScreenIdNext()+",'"+value+"',"+("text".equals(s.getType())?2:1)+","+(s.isNextScreenIsLinked()?1:0)+",4),";
 		}
-		System.out.println(sql.substring(0, sql.length()-1));
+		if(!sql1.isEmpty()){
+			sql1="insert into xquestion values "+ sql1;
+			st.executeUpdate(sql1.substring(0, sql1.length()-1));
+		}
 		st.executeUpdate(sql.substring(0, sql.length()-1));
 
 		return ok(Json.toJson(screens));
@@ -87,10 +108,78 @@ public class Application extends Controller {
 		SurveyResult[] results = service.getExportServiceSoap().exportSurveyResults(surveyCP, surveyPin,fromDate.toString(), toDate.toString(), 0l);
 		return ok(Json.toJson(results));
 	}
+	private static class Facebook implements Callable<SurveyResult[]>{
+		private ExportService service;
+		private DateTime dt;
+		public Facebook(DateTime i,ExportService service) {
+			this.service = service;
+			this.dt = i;
+		}
+		@Override
+		public SurveyResult[] call() throws Exception {
+			System.out.println(dt.toString()+" ------ "+ dt.plusDays(1).toString());
+			return service.getExportServiceSoap().exportSurveyResults(surveyCP, surveyPin,dt.toString(), dt.plusDays(1).toString(), 0l);
+		}
+	}
+	public static Result adb() throws ServiceException, SQLException, IOException, InterruptedException, ExecutionException {
+		final ExportService service = new ExportServiceLocator();
+		ExecutorService executor = Executors.newFixedThreadPool(10);
+		List<Future<SurveyResult[]>> list = new ArrayList<Future<SurveyResult[]>>();
+		DateTime fdt = new DateTime(fromDate);	  
+		System.out.println(fdt.isAfterNow());
+		while (!fdt.isAfterNow()) {
+		  fdt = fdt.plusDays(1);
+	      Callable<SurveyResult[]> worker = new Facebook(fdt,service);
+	      Future<SurveyResult[]> submit = executor.submit(worker);
+	      list.add(submit);
+	    }
+	    executor.shutdown();
+	    Statement st =DB.getConnection().createStatement();
+		int c = 0;
+	    for (Future<SurveyResult[]> future : list) {
+	    	SurveyResult[] results = future.get();
+	    	System.out.println(results.length);
+			List<String> extracted = extracted(results,st);
+			for (String sql : extracted) {
+				st.addBatch(sql);
+				if(++c%1000 ==0)
+					st.executeBatch();
+			}
+	    }
+	    st.executeBatch();
+	    st.close();
+	    return ok("sd");
+	}
+	
+	private static List<String> extracted(SurveyResult[] results, Statement a) throws SQLException,IOException {
+		if(results==null||results.length<1)
+			return new LinkedList<String>();
+		Statement st = a;
+		ResultSet rs = st.executeQuery("select filterscreenid from survey where id = "+ surveyId);
+		rs.next();
+		long districtId = rs.getLong(1);
+		List<String> l = new LinkedList<String>();
+		for(SurveyResult result: results){
+			String district = "";
+			for(com.isurveysoft.www.servicesv5.Result screenResult: result.getScreenResults()){
+				String answer = screenResult.getResultAnswer()==null?"":screenResult.getResultAnswer();
+				if(screenResult.getScreenId() == districtId){
+					district = answer.replaceAll("[\\D]", "").replaceFirst ("^0*", "");
+				}
+				l.add( "insert into xresult (resultid,date,attid,answerid,devicename,answertext,questionid,screenid) values ("+result.getResultId()+",'"+screenResult.getResponseDate()+"',"+result.getResultId()
+					+","+screenResult.getAnswerId()+",'"+result.getResultDeviceName()+"','"+answer.replaceAll("[’'()]", "").replaceAll("\n", "")
+					+"',"+screenResult.getQuestionId()+","+screenResult.getScreenId()+")");
+			}
+			l.add("insert into xattendant(attendantid,lat,lng,mahalle,age,gender,profession) values ("+result.getResultId()+",'"+String.valueOf(result.getResultLocationLatitude())+"','"+result.getResultLocationLongitude()+"','"
+					+district+"',0,0,' ')");
+		}		
+		return l;
+	}
 
 	public static Result results(int town, int district)
-			throws RemoteException, ServiceException {
+			throws RemoteException, ServiceException, SQLException {
 		ExportService service = new ExportServiceLocator();
+
 		Screen[] cachedScreens = (Screen[]) Cache.get(user + "screen");
 		if (cachedScreens == null || cachedScreens.length < 1) {
 			Survey survey = service.getExportServiceSoap().exportSurvey(surveyCP, surveyPin);
@@ -381,7 +470,7 @@ public class Application extends Controller {
 			fromDate = rs.getDate(6);
 			toDate = rs.getDate(7);
 			surveyUndefinedTownId = rs.getInt(8); 
-			int surveyId = rs.getInt(2);
+			surveyId = rs.getInt(2);
 			st = DB.getConnection().createStatement();
 			rs = st.executeQuery("select q.screenid,q.quetype,q.charttype from survey s, question q where q.surveyid = "+ surveyId);
 			while (rs.next()) {
@@ -406,7 +495,7 @@ public class Application extends Controller {
 			//		    response().setHeader("Access-Control-Max-Age", "300");          // Cache response for 5 minutes
 			//		    response().setHeader("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");         // Ensure this header is also allowed!  
 			return ok("true");
-			//return ok(views.html.index.render("doruk"));
+//			return ok(views.html.index.render("doruk"));
 		}
 	}
 
