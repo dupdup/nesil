@@ -12,6 +12,11 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import javax.xml.rpc.ServiceException;
 
@@ -22,6 +27,7 @@ import model.QuestionJSON;
 import model.Tuple;
 
 import org.apache.commons.io.FileUtils;
+import org.joda.time.DateTime;
 
 import play.cache.Cache;
 import play.db.DB;
@@ -101,6 +107,72 @@ public class Application extends Controller {
 		ExportService service = new ExportServiceLocator();
 		SurveyResult[] results = service.getExportServiceSoap().exportSurveyResults(surveyCP, surveyPin,fromDate.toString(), toDate.toString(), 0l);
 		return ok(Json.toJson(results));
+	}
+	private static class Facebook implements Callable<SurveyResult[]>{
+		private ExportService service;
+		private DateTime dt;
+		public Facebook(DateTime i,ExportService service) {
+			this.service = service;
+			this.dt = i;
+		}
+		@Override
+		public SurveyResult[] call() throws Exception {
+			System.out.println(dt.toString()+" ------ "+ dt.plusDays(1).toString());
+			return service.getExportServiceSoap().exportSurveyResults(surveyCP, surveyPin,dt.toString(), dt.plusDays(1).toString(), 0l);
+		}
+	}
+	public static Result adb() throws ServiceException, SQLException, IOException, InterruptedException, ExecutionException {
+		final ExportService service = new ExportServiceLocator();
+		ExecutorService executor = Executors.newFixedThreadPool(10);
+		List<Future<SurveyResult[]>> list = new ArrayList<Future<SurveyResult[]>>();
+		DateTime fdt = new DateTime(fromDate);	  
+		System.out.println(fdt.isAfterNow());
+		while (!fdt.isAfterNow()) {
+		  fdt = fdt.plusDays(1);
+	      Callable<SurveyResult[]> worker = new Facebook(fdt,service);
+	      Future<SurveyResult[]> submit = executor.submit(worker);
+	      list.add(submit);
+	    }
+	    executor.shutdown();
+	    Statement st =DB.getConnection().createStatement();
+		String sqlResult = "insert into xresult (resultid,date,attid,answerid,devicename,answertext,questionid,screenid) values ";
+		String sqlAtt = "insert into xattendant values "; 
+	    for (Future<SurveyResult[]> future : list) {
+	    	SurveyResult[] results = future.get();
+	    	System.out.println(results.length);
+			Tuple<String, String> extracted = extracted(results,st);
+			sqlResult += extracted.x;
+			sqlAtt +=extracted.y;
+		}
+	    FileUtils.writeStringToFile(new File("sda.txt"), sqlResult+"\n\n"+sqlAtt);
+	    st.executeUpdate(sqlResult.substring(0, sqlResult.length()-1));
+		st.executeUpdate(sqlAtt.substring(0, sqlAtt.length()-1));
+	    return ok("sd");
+	}
+	private static Tuple<String,String> extracted(SurveyResult[] results, Statement a) throws SQLException,IOException {
+		if(results==null||results.length<1)
+			return new Tuple<String, String>("", "");
+		String sqlResult="";// = "insert into xresult (resultid,date,attid,answerid,devicename,answertext,questionid,screenid) values ";
+		Statement st = a;
+		String sqlAtt = "";// = "insert into xattendant values ";
+		ResultSet rs = st.executeQuery("select filterscreenid from survey where id = "+ surveyId);
+		rs.next();
+		long districtId = rs.getLong(1);
+		for(SurveyResult result: results){
+			String district = "";
+			for(com.isurveysoft.www.servicesv5.Result screenResult: result.getScreenResults()){
+				String answer = screenResult.getResultAnswer()==null?"":screenResult.getResultAnswer();
+				if(screenResult.getScreenId() == districtId){
+					district = answer.replaceAll("[\\D]", "").replaceFirst ("^0*", "");
+				}
+				sqlResult += "("+result.getResultId()+",'"+screenResult.getResponseDate()+"',"+result.getResultId()
+					+","+screenResult.getAnswerId()+",'"+result.getResultDeviceName()+"','"+answer.replaceAll("[’'()]", "").replaceAll("\n", "")
+					+"',"+screenResult.getQuestionId()+","+screenResult.getScreenId()+"),";
+			}
+			sqlAtt += "("+result.getResultId()+",'"+String.valueOf(result.getResultLocationLatitude())+"','"+result.getResultLocationLongitude()+"','"
+					+district+"',0,0,' '),";
+		}
+		return new Tuple<String, String>(sqlResult,sqlAtt);
 	}
 
 	public static Result results(int town, int district)
@@ -328,8 +400,8 @@ public class Application extends Controller {
 //		    response().setHeader("Access-Control-Allow-Methods", "GET");   // Only allow POST
 //		    response().setHeader("Access-Control-Max-Age", "300");          // Cache response for 5 minutes
 //		    response().setHeader("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");         // Ensure this header is also allowed!  
-			//return ok("true");
-			return ok(views.html.index.render("doruk"));
+			return ok("true");
+//			return ok(views.html.index.render("doruk"));
 		}
 	}
 
