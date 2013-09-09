@@ -30,6 +30,7 @@ import model.Tuple;
 
 import org.joda.time.DateTime;
 
+import play.Logger;
 import play.cache.Cache;
 import play.db.DB;
 import play.libs.Json;
@@ -45,9 +46,9 @@ import com.isurveysoft.www.servicesv5.Survey;
 import com.isurveysoft.www.servicesv5.SurveyResult;
 
 public class Application extends Controller {
-	private static Map<Long, Integer> chartQuestions = new HashMap<Long, Integer>();
-	private static Map<Long, Integer> descQuestions = new HashMap<Long, Integer>();
-	private static Map<Integer,Integer> mahalleilce = new HashMap<Integer, Integer>();
+//	private static Map<Long, Integer> chartQuestions = new HashMap<Long, Integer>();
+//	private static Map<Long, Integer> descQuestions = new HashMap<Long, Integer>();
+	
 	private static List<Integer> allDistricts = java.util.Collections.synchronizedList(new ArrayList<Integer>());
 	private static String user;
 	private static String surveyPin;
@@ -117,13 +118,13 @@ public class Application extends Controller {
 		}
 		@Override
 		public SurveyResult[] call() throws Exception {
-			System.out.println(dt.toString()+" ------ "+ dt.plusDays(1).toString());
+			Logger.error(dt.toString()+" ------ "+ dt.plusDays(1).toString());
 			return service.getExportServiceSoap().exportSurveyResults(surveyCP, surveyPin,dt.toString(), dt.plusDays(1).toString(), 0l);
 		}
 	}
 	public static Result adb() throws ServiceException, SQLException, IOException, InterruptedException, ExecutionException {
 		final ExportService service = new ExportServiceLocator();
-		ExecutorService executor = Executors.newFixedThreadPool(10);
+		ExecutorService executor = Executors.newFixedThreadPool(4);
 		List<Future<SurveyResult[]>> list = new ArrayList<Future<SurveyResult[]>>();
 		DateTime fdt = new DateTime(fromDate);	  
 		System.out.println(fdt.isAfterNow());
@@ -142,7 +143,7 @@ public class Application extends Controller {
 			List<String> extracted = extracted(results,st);
 			for (String sql : extracted) {
 				st.addBatch(sql);
-				if(++c%1000 ==0)
+				if(++c%2000 ==0)
 					st.executeBatch();
 			}
 	    }
@@ -176,25 +177,6 @@ public class Application extends Controller {
 		return l;
 	}
 
-	public static Result results(int town, int district)
-			throws RemoteException, ServiceException, SQLException {
-		ExportService service = new ExportServiceLocator();
-
-		Screen[] cachedScreens = (Screen[]) Cache.get(user + "screen");
-		if (cachedScreens == null || cachedScreens.length < 1) {
-			Survey survey = service.getExportServiceSoap().exportSurvey(surveyCP, surveyPin);
-			cachedScreens = survey.getScreens();
-			Cache.set(user + "screen", cachedScreens);
-		}
-		SurveyResult[] cachedResults = (SurveyResult[]) Cache.get(user+ "answer");
-		if (cachedResults == null || cachedResults.length < 1) {
-			cachedResults = service.getExportServiceSoap().exportSurveyResults(surveyCP, surveyPin,fromDate.toString(), toDate.toString(), 0l);
-			//			cachedResults = service.getExportServiceSoap().exportSurveyResults(surveyCP, surveyPin, "2013-08-22 15:11:42","2013-09-20 00:11:42", 0l);
-			Cache.set(user + "answer", cachedResults);
-		}
-		return ok(Json.toJson(toJsonFormat(cachedScreens, cachedResults, town,
-				district)));
-	}
 	public static Result clearCache(){
 		Cache.remove(user+"screen");
 		Cache.remove(user+"answer");
@@ -211,10 +193,10 @@ public class Application extends Controller {
 		}
 		return ok(Json.toJson(cached));
 	}
-	public static Result resultsx(int town, int district){
+	public static Result resultsx(int town, int district) throws SQLException{
 //		List<QuestionJSON> fromDB = fromDB(getScreens(), getResults(), town,district);
 //		return ok(Json.toJson(fromDB));
-		return ok("");
+		return ok(Json.toJson(fromDB(town, district)));
 	}
 	private static List<Resultx> getResults() {
 		return null;
@@ -222,176 +204,43 @@ public class Application extends Controller {
 	private static List<Screenx> getScreens() {
 		return null;
 	}
-	private static List<QuestionJSON> fromDB(List<Screenx> screens,List<Resultx> results, int town, int district) {
+	private static List<QuestionJSON> fromDB(int town, int district) throws SQLException {
 		List<QuestionJSON> list = new LinkedList<QuestionJSON>();
-//		List<QuestionJSON> listMultiQue = new LinkedList<QuestionJSON>();
-//		HashMap<Tuple<Long, Long>, Integer> ansMap = new HashMap<Tuple<Long, Long>, Integer>();
-//		for (Resultx sr : results) {
-//			boolean onRegion = true;
-//			if (town > 0)
-//				if (sr.getScreenId() == filterScreenId&& sr.getText() != null&& sr.getText().length() > 0) {
-//					String clearedFromChars = sr.getText().replaceAll("[\\D]", "").replaceFirst ("^0*", "");
-//					if(clearedFromChars.length()==0||clearedFromChars.length()>3){
-//						onRegion=false;
-//						break;
-//					}
-//					allDistricts.add(Integer.parseInt(clearedFromChars));
-//					if (district > 0) {
-//						onRegion = district==Integer.parseInt(clearedFromChars);
-//					} else if(surveyMainLocType!=2){
-//						Integer townofdistrict = mahalleilce.get(Integer.parseInt(clearedFromChars));
-//						onRegion = town == (townofdistrict==null?surveyUndefinedTownId:townofdistrict);
-//					}
-//				}
-//			if (onRegion){
-//				Tuple<Long, Long> tuple = new Tuple<Long, Long>(sr.getQuestionId() == 0 ? sr.getScreenId(): sr.getQuestionId(), sr.getId());
-//				Integer c = ansMap.get(tuple);
-//				if (c == null)
-//					ansMap.put(tuple, 1);
-//				else
-//					ansMap.put(tuple, c + 1);
-//			}
-//		}
-//		for (Screenx screen : screens) {
-//			if (!chartQuestions.containsKey(screen.getId())) {
-//				continue;
-//			}
-//			HashMap<Long, String> ansTextMap = new HashMap<Long, String>();
-//			for (Answer answer : screen.getAnswers()) {
-//				ansTextMap.put(answer.getAnswerId(), answer.getAnswerText());
-//			}
-//			if (screen.getQuestions() != null
-//					&& screen.getQuestions().length > 0) {
-//				for (Question q : screen.getQuestions()) {
-//					QuestionJSON que = new QuestionJSON();
-//					que.setScreenId(screen.getScreenId());
-//					que.setText(q.getQuestionText());
-//					que.setType(3);
-//					List<AnswerJSON> ansList = new LinkedList<AnswerJSON>();	
-//					for(Long x : ansTextMap.keySet()){
-//						Tuple<Long, Long> key = new Tuple<Long,Long>(q.getQuestionId(),x);
-//						AnswerJSON ans = new AnswerJSON();
-//						ans.setCode(x);
-//						ans.setText(ansTextMap.get(x));
-//						Integer count = ansMap.get(key);
-//						ans.setCount(count == null ? 0 : count);
-//						if (count != null)
-//							ansList.add(ans);
-//					}
-//					que.setAnswer(ansList);
-//					listMultiQue.add(que);
-//				}
-//			} else {
-//				QuestionJSON que = new QuestionJSON();
-//				que.setText(screen.getScreenText());
-//				que.setScreenId(screen.getScreenId());
-//				que.setType(chartQuestions.get(screen.getScreenId()));
-//				List<AnswerJSON> ansList = new LinkedList<AnswerJSON>();
-//				for (Long x : ansTextMap.keySet()) {
-//					Tuple<Long, Long> key = new Tuple<Long, Long>(screen.getScreenId(), x);
-//					AnswerJSON ans = new AnswerJSON();
-//					ans.setCode(x);
-//					ans.setText(ansTextMap.get(x));
-//					Integer count = ansMap.get(key);
-//					ans.setCount(count == null ? 0 : count);
-//					if (count != null)
-//						ansList.add(ans);
-//				}
-//				que.setAnswer(ansList);
-//				list.add(que);
-//			}
-//
-//		}
-//		list.addAll(listMultiQue);
-		return list;
-	}
-	private static List<QuestionJSON> toJsonFormat(Screen[] screens,SurveyResult[] results, int town, int district) {
-		List<QuestionJSON> list = new LinkedList<QuestionJSON>();
-		List<QuestionJSON> listMultiQue = new LinkedList<QuestionJSON>();
-		HashMap<Tuple<Long, Long>, Integer> ansMap = new HashMap<Tuple<Long, Long>, Integer>();
-		for (SurveyResult sr : results) {
-			boolean onRegion = true;
-			if (town > 0)
-				for (com.isurveysoft.www.servicesv5.Result res : sr.getScreenResults()) {
-					if (res.getScreenId() == filterScreenId&& res.getResultAnswer() != null&& res.getResultAnswer().length() > 0) {
-						String clearedFromChars = res.getResultAnswer().replaceAll("[\\D]", "").replaceFirst ("^0*", "");
-						if(clearedFromChars.length()==0||clearedFromChars.length()>3){
-							onRegion=false;
-							break;
-						}
-						allDistricts.add(Integer.parseInt(clearedFromChars));
-						if (district > 0) {
-							onRegion = district==Integer.parseInt(clearedFromChars);
-						} else if(surveyMainLocType!=2){
-							Integer townofdistrict = mahalleilce.get(Integer.parseInt(clearedFromChars));
-							onRegion = town == (townofdistrict==null?surveyUndefinedTownId:townofdistrict);
-						}
-					}
-				}
-			if (onRegion)
-				for (com.isurveysoft.www.servicesv5.Result res : sr.getScreenResults()) {
-					Tuple<Long, Long> tuple = new Tuple<Long, Long>(res.getQuestionId() == null ? res.getScreenId(): res.getQuestionId(), res.getAnswerId());
-					Integer c = ansMap.get(tuple);
-					if (c == null)
-						ansMap.put(tuple, 1);
-					else
-						ansMap.put(tuple, c + 1);
-				}
-		}
-		for (Screen screen : screens) {
-			if (!chartQuestions.containsKey(screen.getScreenId())) {
-				continue;
-			}
-			HashMap<Long, String> ansTextMap = new HashMap<Long, String>();
-			for (Answer answer : screen.getAnswers()) {
-				ansTextMap.put(answer.getAnswerId(), answer.getAnswerText());
-			}
-			if (screen.getQuestions() != null
-					&& screen.getQuestions().length > 0) {
-				for (Question q : screen.getQuestions()) {
-					QuestionJSON que = new QuestionJSON();
-					que.setScreenId(screen.getScreenId());
-					que.setText(q.getQuestionText());
-					que.setType(3);
-					List<AnswerJSON> ansList = new LinkedList<AnswerJSON>();	
-					for(Long x : ansTextMap.keySet()){
-						Tuple<Long, Long> key = new Tuple<Long,Long>(q.getQuestionId(),x);
-						AnswerJSON ans = new AnswerJSON();
-						ans.setCode(x);
-						ans.setText(ansTextMap.get(x));
-						Integer count = ansMap.get(key);
-						ans.setCount(count == null ? 0 : count);
-						if (count != null)
-							ansList.add(ans);
-					}
-					que.setAnswer(ansList);
-					listMultiQue.add(que);
-				}
-			} else {
-				QuestionJSON que = new QuestionJSON();
-				que.setText(screen.getScreenText());
-				que.setScreenId(screen.getScreenId());
-				que.setType(chartQuestions.get(screen.getScreenId()));
-				List<AnswerJSON> ansList = new LinkedList<AnswerJSON>();
-				for (Long x : ansTextMap.keySet()) {
-					Tuple<Long, Long> key = new Tuple<Long, Long>(screen.getScreenId(), x);
+		Statement st = DB.getConnection().createStatement();
+		String sql = "SELECT s.screentext,r.screenid,r.answerid,r.answertext, q.charttype,count(r.attid)"+ 
+" FROM xresult r JOIN xscreen s JOIN question q ON s.screenid = r.screenid and q.screenid=s.screenid "+
+" and q.quetype=2 AND s.surveyid = "+surveyId+" "+ "GROUP BY r.screenid,r.answerid";
+		ResultSet rs = st.executeQuery(sql);
+		int tempScreenId = 0;
+		int index=0;
+		while(rs.next()){
+			int screenId = rs.getInt(2);
+				if(screenId != tempScreenId){
+					List<AnswerJSON> alist = new LinkedList<AnswerJSON>();
+					tempScreenId = screenId;
+					QuestionJSON q = new QuestionJSON();
+					q.setScreenId(rs.getInt(2));
+					q.setText(rs.getString(1));
+					q.setType(rs.getInt(5));
 					AnswerJSON ans = new AnswerJSON();
-					ans.setCode(x);
-					ans.setText(ansTextMap.get(x));
-					Integer count = ansMap.get(key);
-					ans.setCount(count == null ? 0 : count);
-					if (count != null)
-						ansList.add(ans);
+					ans.setCode(rs.getInt(3));
+					ans.setText(rs.getString(4).trim().length()<2?"Cevap Yok":rs.getString(4));
+					ans.setCount(rs.getInt(6));
+					alist.add(ans);
+					q.setAnswer(alist);
+					list.add(q);
+					index = list.indexOf(q);
+				}else{
+					AnswerJSON ans = new AnswerJSON();
+					ans.setCode(rs.getInt(3));
+					ans.setText(rs.getString(4).trim().length()<2?"Cevap Yok":rs.getString(4));
+					ans.setCount(rs.getInt(6));
+					list.get(index).getAnswer().add(ans);
+					tempScreenId = screenId;
 				}
-				que.setAnswer(ansList);
-				list.add(que);
-			}
-
 		}
-		list.addAll(listMultiQue);
 		return list;
 	}
-
 	private static List<GeoAnswerJSON> toGeoJsonFormat(long screenId,SurveyResult[] results) {
 		List<GeoAnswerJSON> list = new LinkedList<GeoAnswerJSON>();
 		for(SurveyResult sr:results){
@@ -462,7 +311,6 @@ public class Application extends Controller {
 			st = DB.getConnection().createStatement();
 			rs = st.executeQuery("select s.pin,s.id,s.cp,s.locid,s.loctype,s.fromdate,s.todate,s.undefinedtownid from user u,survey s where s.usercode = u.code and u.code = '"+ user + "'");
 			rs.next();
-
 			surveyPin = rs.getString(1);
 			surveyCP = rs.getString(3);
 			surveyMainLocId = rs.getInt(4);
@@ -472,30 +320,18 @@ public class Application extends Controller {
 			surveyUndefinedTownId = rs.getInt(8); 
 			surveyId = rs.getInt(2);
 			st = DB.getConnection().createStatement();
-			rs = st.executeQuery("select q.screenid,q.quetype,q.charttype from survey s, question q where q.surveyid = "+ surveyId);
-			while (rs.next()) {
-				if (rs.getInt(2) == 2) {
-					chartQuestions.put(rs.getLong(1), rs.getInt(3));
-				} else if (rs.getInt(2) == 1) {
-					descQuestions.put(rs.getLong(1), rs.getInt(3));
-				}
-			}
-			st = DB.getConnection().createStatement();
 			rs = st.executeQuery("select q.screenid from survey s, question q where q.quetype = 5 and q.surveyid = "+ surveyId);
 			rs.next();
 			filterScreenId = rs.getLong(1);
 			st = DB.getConnection().createStatement();
 			String sql = "select d.code,t.id from district d, town t where d.townid=t.id and "+(surveyMainLocType==2?"t.id =":"t.cityid =")+surveyMainLocId;
 			rs = st.executeQuery(sql);
+			Map<Integer,Integer> mahalleilce = new HashMap<Integer, Integer>();
 			while (rs.next()) {
 				mahalleilce.put(rs.getInt(1), rs.getInt(2));
 			}
-			//		    response().setHeader("Access-Control-Allow-Origin", "*");       // Need to add the correct domain in here!!
-			//		    response().setHeader("Access-Control-Allow-Methods", "GET");   // Only allow POST
-			//		    response().setHeader("Access-Control-Max-Age", "300");          // Cache response for 5 minutes
-			//		    response().setHeader("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");         // Ensure this header is also allowed!  
-			return ok("true");
-//			return ok(views.html.index.render("doruk"));
+			Cache.set(session("user")+"mahalle", mahalleilce);
+			return ok(views.html.index.render("doruk"));
 		}
 	}
 
