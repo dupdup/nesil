@@ -3,60 +3,121 @@
 <!DOCTYPE html>
 
 <head>
-<title>Survey</title>
-<link rel="shortcut icon" type="image/png" href="@routes.Assets.at("images/favicon.png")">
-<link rel="stylesheet" type="text/css" href="@routes.Assets.at("stylesheets/survey.css")">
-<link rel="stylesheet" type="text/css" href="@routes.Assets.at("stylesheets/resources/select2.css")">
-<link type="text/css" rel="stylesheet" href="@routes.Assets.at("stylesheets/resources/colorbox.css")" />
-<script src="@routes.Assets.at("javascripts/jquery-1.9.0.min.js")" type="text/javascript"></script>
-<script src="@routes.Assets.at("javascripts/select2.min.js")" type="text/javascript"></script>
-<script type="text/javascript" src="@routes.Assets.at("app/pir.js")"></script>
-<script src="@routes.Assets.at("javascripts/highcharts.js")"></script>
-<script src="@routes.Assets.at("javascripts/exporting.js")"></script>
-<script type="text/javascript" src="http://maps.google.com/maps/api/js?sensor=false"></script> 
-<!-- <script type="text/javascript" src="@routes.Assets.at("javascripts/markerclusterer.min.js")"></script> -->
-<script type="text/javascript" src="@routes.Assets.at("javascripts/jquery.ui.map.js")"></script>
-<script type="text/javascript" src="@routes.Assets.at("javascripts/jquery.colorbox-min.js")"></script>
+	<title>Başkan Dinliyor | A&amp;G Araştırma Şirketi</title>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+	
+	    <!-- CSS-->
+	<link rel="stylesheet" type="text/css" href="@routes.Assets.at("stylesheets/reset.css")" />
+	<link rel="stylesheet" type="text/css" href="@routes.Assets.at("stylesheets/foundation.css")" />
+	<link rel="stylesheet" type="text/css" href="@routes.Assets.at("stylesheets/style.css")" />
+	<link rel="stylesheet" type="text/css" href="@routes.Assets.at("stylesheets/icons.css")" />
+	<link rel="stylesheet" type="text/css" href="@routes.Assets.at("stylesheets/flexslider.css")" />
+	<link rel="stylesheet" type="text/css" href="@routes.Assets.at("stylesheets/resources/select2.css")">
+	<link type="text/css" rel="stylesheet" href="@routes.Assets.at("stylesheets/resources/colorbox.css")" />
+	<link type="text/css" rel="stylesheet" href="@routes.Assets.at("stylesheets/survey.css")" />
+	
+	    <!-- GOOGLE WEBFONT-->
+<link href='http://fonts.googleapis.com/css?family=PT+Sans:400,700,400italic,700italic&subset=latin,latin-ext' rel='stylesheet' type='text/css'>
+
+    <!-- //SCRIPTS -->
+    <script type="text/javascript" src="@routes.Assets.at("javascripts/a/jquery-1.7.2.min.js")"></script>
+	<script type="text/javascript" src="@routes.Assets.at("javascripts/a/jquery.easing.1.3.js")"></script>
+	<script type="text/javascript" src="@routes.Assets.at("javascripts/a/jquery.foundation.reveal.js")"></script>
+    <script type="text/javascript" src="@routes.Assets.at("javascripts/a/jquery.foundation.accordion.js")"></script>
+    <script type="text/javascript" src="@routes.Assets.at("javascripts/a/app.js")"></script>
+	<script type="text/javascript" src="@routes.Assets.at("javascripts/a/rotate.js")"></script>
+	<script type="text/javascript" src="@routes.Assets.at("javascripts/a/jquery.flexslider.js")"></script>
+<!-- 	<script src="@routes.Assets.at("javascripts/jquery-1.9.0.min.js")" type="text/javascript"></script> -->
+	<script src="@routes.Assets.at("javascripts/select2.min.js")" type="text/javascript"></script>
+	<script type="text/javascript" src="@routes.Assets.at("app/pir.js")"></script>
+	<script src="@routes.Assets.at("javascripts/highcharts.js")"></script>
+	<script src="@routes.Assets.at("javascripts/exporting.js")"></script>
+	<script type="text/javascript" src="http://maps.google.com/maps/api/js?sensor=false"></script> 
+	<script type="text/javascript" src="@routes.Assets.at("javascripts/jquery.ui.map.js")"></script>
+	<script type="text/javascript" src="@routes.Assets.at("javascripts/jquery.colorbox-min.js")"></script>
+	<script>
+	$(function(){
+		$('.flexslider').flexslider({
+		animation: "fade",
+		start: function(slider){
+		$('body').removeClass('loading');
+		}
+		});
+	});
+	</script>
 </head>
+
 <body>
 	@content
-	<div id="login" style="top: 0px;">
-		<table>
-			<tr>
-				<td>
-					<div id="userDiv" style="width: 200px; height: 20px; float: left;">
-						Kullanici Adi: <input type="text" id="user"
-							style="width: 200px; height: 30px; left: 140px;" />
-					</div>
-				</td>
-				<td>
-					<div id="passDiv" style="width: 200px; height: 20px; float: left;">
-						Sifre: <input type="password" id="pass"
-							style="width: 200px; height: 30px; left: 140px;" />
-					</div>
-				</td>
-				<td style="border: none">
-					<div id="giris"
-						style="width: 110px; height: 30px; float: left; top: 10px; text-decoration: none;">
-						Giris
-						<button id="login-button" onclick="loginSurvey()"
-							style="cursor:pointer; width: 110px; height: 40px; top: 10px;">Giris
-							Yap</button>
-					</div>
-				</td>
-			</tr>
-		</table>
-		</div>
-		<!-- wrap starts here -->
-		<div id="wrap">
-		<!--header -->
-		<div id="header">
-			<!--header ends-->
-		</div>
+<!-- Modal Section -Login -->
+<div id="loginform" class="reveal-modal">
+	<h3>Kullanıcı Girişi</h3>
+	<p>Lütfen kullanıcı adınızı ve şifrenizi giriniz.</p>
+	<div class="space20"></div>
+	<form>
+		<fieldset>
+			<label><strong>Kullanıcı Adı:</strong></label>
+			<input type="text"/>
+			<label><strong>Şifre:</strong></label>
+			<input type="text" />
+			<div class="space10"></div>
+			<a class="radius button" href="#">Giriş Yap</a>
+			<div class="space10"></div>
+			<p><a href="#">Parolanızı mı unuttunuz?</a></p>
+		</fieldset>
+</form>
 
-		<div id="header-photo" style="margin: 0 auto 0 auto">
+<a class="close-reveal-modal"><i class="foundicon1-remove"></i></a>
+</div>
+<!-- Modal Section -Login -->
 
-			<table style="margin: 0 auto 0 auto; float:left; height: 40px; width: 900px; top:30px;">
+<!-- Modal Section -Register -->
+<div id="signupform" class="reveal-modal">
+	<h3>Bize Ulaşın</h3>
+	<p>Soru veya önerileriniz için ekteki formdan bize ulaşabilirsiniz..</p>
+	<div class="space20"></div>
+	<form>
+		<fieldset>
+			<label><strong>Adınız :</strong></label>
+			<input type="text"/>			
+			<label><strong>E-postanız :</strong></label>
+			<input type="email" />
+            <label><strong>İletiniz :</strong></label>
+			<textarea></textarea>				
+			<div class="space10"></div>
+			<input type="submit" class="radius button" value="Giriş Yap">
+		</fieldset>
+	</form>
+
+<a class="close-reveal-modal"><i class="foundicon1-remove"></i></a>
+</div>
+<!-- Modal Section -Register -->
+
+<!-- Header Section -->
+<div id="header">
+	<div class="header-wrap row">
+		<div class="twelve columns">
+			<div class="logo">
+				<h1><a href="index.html"><img src="@routes.Assets.at("images/logo.png")" alt=""/></a></h1>
+			</div>
+
+			<div class="login"><a href="#" data-reveal-id="loginform"><i class="foundicon1-unlock login-ico"></i> Giriş</a></div>
+			<div class="register"><a href="#" data-reveal-id="signupform"><i class="foundicon1-people register-ico"></i> Bize Ulaşın</a></div>
+		</div>
+	</div>
+</div>
+<!-- Header Section -->
+
+<div class="clear"></div>
+<!-- Slider section-->
+<div class="slider-wrap space200">
+<h2 class="secondtitle text-center">Başkan "Manisa"yı Dinliyor!</h2>
+
+	    <div id="header-photo" style="margin: 0 auto 0 auto; background:url(../images/p6.png) repeat;">
+
+			<table style="margin: 0 auto 0 auto; float:left; height: 40px; width: 900px; top:30px; background:url(../images/p6.png) repeat; border: 0px none;">
 				<tr>
 					<td style="width: 200px; height: 30px;">
 						<div id="towncombodiv" style="width: 200px; height: 30px; margin: 0 auto 0 auto; top:40px;">
@@ -75,12 +136,88 @@
 				</tr>
 			</table>
 		</div>
-
-		<div id="content-wrap" class="content-wrap">
-			<div id="container" style="margin: 0 auto 0 auto"></div>
-			<!-- content-wrap ends-->
 		</div>
-		<!-- wrap ends here -->
+<div class="row" style="width: 1300px;">
+			<div id="container" style="margin: 0 auto 0 auto"></div>
+			<div id="map_canvas" style="width: 800px; height:600px;"></div>
+		</div>
+<!-- Slider section-->
+<div class="clear"></div>
+<div class="space70"></div>
+<div class="clear"></div>
+<!-- Wrap2 content section-->
+<div class="row">
+	<div class="twelve columns">
+		<div class="panel aghizmeti">
+			<h2>A&amp;G Araştırma hizmetidir.</h2>
+			<p>Başkan Dinliyor projesi, A&amp;G Araştırma tarafından belediye başkanları için yapılmıştır.</p>			
+		</div>
 	</div>
-<div id="map_canvas" style="width: 800px; height:600px;"></div>
+</div>
+<!-- Wrap2 content section-->
+
+<div class="clear"></div>
+<div class="space30"></div>
+<div class="clear"></div>
+
+
+<!-- Features content section-->
+<div class="row">
+	<div class="wrap">
+		<!-- Features wrap Section -->
+		<div class="twelve columns">
+			<div class="features-wrap">
+				<div class="four columns features-content">
+				  <div class="features-icon"><i class="foundicon1-heart" style="color:#e64030;"></i></div>
+                  <div class="features-description">
+                    <h5>Vatandaş Memnuniyetinde Artış Sağlar</h5>
+                    <p>Projenin yürütüldüğü il veya ilçelerde <span class="secondary label">vatandaş memnuniyetinde </span> 3-4 ayda <span class="alert label">%10 </span>, civarında artış olduğu belirlenmiştir.</p>
+                  </div>
+                  <div class="features-description"><p>&nbsp;</p>
+					</div>
+				</div>
+
+				<div class="four columns features-content">
+					<div class="features-icon"><i class="foundicon1-people" style="color:#4da9b4;"></i></div>
+					<div class="features-description">
+						<h5>Hizmet Denetimi Yapar.</h5>
+						<p>Bu çalışmada görev alan personel sadece vatandaş görüşlerini toplamayacak aynı zamanda bir hizmet denetimi de yapacaktır. Sokakta kaldırımların – yolların durumu, çöp hizmetlerinin işleyişi vs. gibi tüm <span class="alert label">belediye hizmetleri sahada yerinde denetlenecektir</span>.</p>
+					</div>
+				</div>
+
+				<div class="four columns features-content">
+					<div class="features-icon"><i class="foundicon1-globe" style="color:#836aab;"></i></div>
+					<div class="features-description">
+						<h5>Sizi Tanıtır</h5>
+						<p>Ekipler köy, mahalle ve ilçelerdeki <span class="secondary label">hane ziyaretlerine</span> belediyenin özel olarak giydirilmiş araçlarıyla gidecek. Aracın üzerinde <span class="alert label">“Başkan …’ı Dinliyor” </span> yazısı <span class="alert label">ve Başkan’ın fotoğrafı </span> yer alacaktır.</p>
+					</div>
+				</div>
+			</div>
+		</div>
+		<!-- Features wrap Section -->
+	</div>
+</div>
+<!-- Features content section-->
+
+<div class="space40"></div>
+<div class="clear"></div>
+<div class="space40"></div>
+
+<!-- Footer content section-->
+<div class="row">
+	<div class="footer twelve columns">
+		<p>A&amp;G Araştırma 2013.</p>
+			<div class="space10"></div>
+			<div class="social">
+				<ul class="social-networks">
+					<li class="icon-twitter"><a href="#">Twitter</a></li>
+					<li class="icon-facebook"><a href="#">Facebook</a></li>
+					<li class="icon-dribbble"><a href="#">Dribbble</a></li>
+					<li class="icon-flickr"><a href="#">Flickr</a></li>
+				</ul>
+			</div>
+	</div>
+</div>
+<div class="clear"></div>
+<!-- Footer content section-->
 </body>

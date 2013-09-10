@@ -9,71 +9,6 @@
 /********************************************
    HTML ELEMENTS
 ********************************************/ 
-
-/* Top Elements */
-* { margin: 0; padding: 0; border: 0 }
-
-body {
-	background: #E8E8E8;
-	font: 70%/1.5em Verdana, Tahoma, arial, sans-serif;
-	color: #666666; 
-	text-align: center;
-	margin: 15px 0;
-	z-index:-1
-}
-
-/* links */
-a, a:visited {	
-	color: #5A93C9;
-	background: inherit;
-	text-decoration: none;
-}
-a:hover {
-	color: #88ac0b;
-	background: inherit;
-	text-decoration: underline;
-}
-
-/* headers */
-h1, h2, h3 {
-	font-family: 'Trebuchet MS', Tahoma, Sans-serif;
-	font-weight: Bold; 		
-}
-h1 {
-	font-size: 160%;	
-	font-weight: normal;
-}
-h2 {
-	font-size: 130%;
-	text-transform: uppercase;
-	color: #88ac0b;
-}
-h3 {
-	font-size: 130%;	
-}
-
-h1, h2, h3, p {
-	padding: 10px;		
-	margin: 0;
-}
-ul, ol {
-	margin: 5px 20px;
-	padding: 0 20px;
-}
-
-/* images */
-img {
-	background: #FAFAFA;
-   border: 1px solid #DCDCDC;
-	padding: 5px;
-}
-img.float-right {
-  	margin: 5px 0px 10px 10px;  
-}
-img.float-left {
-  	margin: 5px 10px 10px 0px;
-}
-
 code {
   	margin: 5px 0;
   	padding: 10px;
@@ -99,7 +34,7 @@ blockquote {
 }
 
 grid{
-	position: relative;
+	position: absolute;
 	clear: both;
 	float: center;	
 	width: 400px;
@@ -218,6 +153,7 @@ textarea {
 	position: relative;
 	width: 1300px;
 	background-color: #E8E8E8;
+	background:url(../images/p6.png) repeat;
 	margin: 0 auto 0 auto;
 	text-align: center;
 	top:0px;
@@ -241,21 +177,12 @@ textarea {
 	display: inline;
 	margin: 0 auto 0 auto;
 }
-#header {
-	clear: both;
-	width: 900px;
-	height: 100px;
-	background: #E8E8E8 url(../images/logo.jpg) repeat-y center top;
-	margin: 0 auto;	
-	color: #E8E8E8;	
-}
 
 /* header-photo */
 #header-photo {
-	background: #E8E8E8;
 	clear: both;
 	height: 60px;
-	width: 900px;
+	width: 300px;
 	margin: 0 auto;
 }
 #header h1#logo-text a {
@@ -417,4 +344,23 @@ textarea {
 	width: 400;
     height: 420;
     margin: 0 auto 0 auto;
+}
+button {
+	-webkit-box-shadow:rgba(0,0,0,0.2) 0 1px 0 0;
+	-moz-box-shadow:rgba(0,0,0,0.2) 0 1px 0 0;
+	box-shadow:rgba(0,0,0,0.2) 0 1px 0 0;
+	color:#333;
+	background-color:#DB704D;
+	border-radius:5px;
+	-moz-border-radius:5px;
+	-webkit-border-radius:5px;
+	border:none;
+	font-family:'Helvetica Neue',Arial,sans-serif;
+	font-size:16px;
+	font-weight:700;
+	height:32px;
+	padding:4px 16px;
+	text-shadow:#FE6 0 1px 0;
+	cursor:pointer;
+	width:400px;
 }

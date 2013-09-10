@@ -1,6 +1,5 @@
 package controllers;
 
-import java.io.File;
 import java.io.IOException;
 import java.rmi.RemoteException;
 import java.sql.ResultSet;
@@ -26,18 +25,15 @@ import model.GeoAnswerJSON;
 import model.QuestionJSON;
 import model.Resultx;
 import model.Screenx;
-import model.Tuple;
 
 import org.joda.time.DateTime;
 
-import play.Logger;
 import play.cache.Cache;
 import play.db.DB;
 import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
 
-import com.isurveysoft.www.servicesv5.Answer;
 import com.isurveysoft.www.servicesv5.ExportService;
 import com.isurveysoft.www.servicesv5.ExportServiceLocator;
 import com.isurveysoft.www.servicesv5.Question;
@@ -48,30 +44,20 @@ import com.isurveysoft.www.servicesv5.SurveyResult;
 public class Application extends Controller {
 //	private static Map<Long, Integer> chartQuestions = new HashMap<Long, Integer>();
 //	private static Map<Long, Integer> descQuestions = new HashMap<Long, Integer>();
-	
 	private static List<Integer> allDistricts = java.util.Collections.synchronizedList(new ArrayList<Integer>());
-	private static String user;
-	private static String surveyPin;
-	private static String surveyCP;
-	private static long filterScreenId;
-	private static int surveyMainLocId;
-	private static int surveyUndefinedTownId;
-	private static int surveyMainLocType;
-	private static int surveyId;
 	private static Date fromDate;
 	private static Date toDate;
 
 	public static Result wsdl() throws RemoteException, ServiceException {
 		ExportService service = new ExportServiceLocator();
-		Survey survey = service.getExportServiceSoap().exportSurvey(surveyCP,
-				surveyPin);
+		Survey survey = service.getExportServiceSoap().exportSurvey(session("surveyCP"),session("surveyPin"));
 		Screen[] screens = survey.getScreens();
 		return ok(Json.toJson(screens));
 	}
 	public static Result qdb() throws ServiceException, SQLException, IOException {
 		ExportService service = new ExportServiceLocator();
-		Survey survey = service.getExportServiceSoap().exportSurvey(surveyCP,
-				surveyPin);
+		Survey survey = service.getExportServiceSoap().exportSurvey(session("surveyCP"),
+				session("surveyPin"));
 		Screen[] screens = survey.getScreens();
 		Statement st = DB.getConnection().createStatement();
 		String sql="insert into xscreen values ";
@@ -106,7 +92,7 @@ public class Application extends Controller {
 
 	public static Result ans() throws RemoteException, ServiceException {
 		ExportService service = new ExportServiceLocator();
-		SurveyResult[] results = service.getExportServiceSoap().exportSurveyResults(surveyCP, surveyPin,fromDate.toString(), toDate.toString(), 0l);
+		SurveyResult[] results = service.getExportServiceSoap().exportSurveyResults(session("surveyCP"), session("surveyPin"),fromDate.toString(), toDate.toString(), 0l);
 		return ok(Json.toJson(results));
 	}
 	private static class Facebook implements Callable<SurveyResult[]>{
@@ -118,8 +104,8 @@ public class Application extends Controller {
 		}
 		@Override
 		public SurveyResult[] call() throws Exception {
-			Logger.error(dt.toString()+" ------ "+ dt.plusDays(1).toString());
-			return service.getExportServiceSoap().exportSurveyResults(surveyCP, surveyPin,dt.toString(), dt.plusDays(1).toString(), 0l);
+			System.out.println(dt.toString()+" ------ "+ dt.plusDays(1).toString());
+			return service.getExportServiceSoap().exportSurveyResults(session("surveyCP"), session("surveyPin"),dt.toString(), dt.plusDays(1).toString(), 0l);
 		}
 	}
 	public static Result adb() throws ServiceException, SQLException, IOException, InterruptedException, ExecutionException {
@@ -137,7 +123,7 @@ public class Application extends Controller {
 	    executor.shutdown();
 	    Statement st =DB.getConnection().createStatement();
 		int c = 0;
-	    for (Future<SurveyResult[]> future : list) {
+	    for (Future<SurveyResult[]> future : list){
 	    	SurveyResult[] results = future.get();
 	    	System.out.println(results.length);
 			List<String> extracted = extracted(results,st);
@@ -156,7 +142,7 @@ public class Application extends Controller {
 		if(results==null||results.length<1)
 			return new LinkedList<String>();
 		Statement st = a;
-		ResultSet rs = st.executeQuery("select filterscreenid from survey where id = "+ surveyId);
+		ResultSet rs = st.executeQuery("select filterScreenId from survey where id = "+ session("surveyId"));
 		rs.next();
 		long districtId = rs.getLong(1);
 		List<String> l = new LinkedList<String>();
@@ -177,44 +163,51 @@ public class Application extends Controller {
 		return l;
 	}
 
-	public static Result clearCache(){
-		Cache.remove(user+"screen");
-		Cache.remove(user+"answer");
-		return ok("");
-	}
+
 	public static Result geoResults(long screenId) throws RemoteException, ServiceException {
 		ExportService service = new ExportServiceLocator();
 		@SuppressWarnings("unchecked")
-		List<GeoAnswerJSON> cached = (List<GeoAnswerJSON>) Cache.get(user+ "geo" + screenId);
+		List<GeoAnswerJSON> cached = (List<GeoAnswerJSON>) Cache.get(session("user")+ "geo" + screenId);
 		if (cached == null || cached.size() < 1) {
-			SurveyResult[] results = service.getExportServiceSoap().exportSurveyResults(surveyCP, surveyPin,fromDate.toString(), toDate.toString(), 0l);
+			SurveyResult[] results = service.getExportServiceSoap().exportSurveyResults(session("surveyCP"), session("surveyPin"),fromDate.toString(), toDate.toString(), 0l);
 			cached = toGeoJsonFormat(screenId, results);
-			Cache.set(user + "geo" + screenId, cached);
+			Cache.set(session("user") + "geo" + screenId, cached);
 		}
 		return ok(Json.toJson(cached));
 	}
 	public static Result resultsx(int town, int district) throws SQLException{
-//		List<QuestionJSON> fromDB = fromDB(getScreens(), getResults(), town,district);
-//		return ok(Json.toJson(fromDB));
 		return ok(Json.toJson(fromDB(town, district)));
-	}
-	private static List<Resultx> getResults() {
-		return null;
-	}
-	private static List<Screenx> getScreens() {
-		return null;
 	}
 	private static List<QuestionJSON> fromDB(int town, int district) throws SQLException {
 		List<QuestionJSON> list = new LinkedList<QuestionJSON>();
 		Statement st = DB.getConnection().createStatement();
-		String sql = "SELECT s.screentext,r.screenid,r.answerid,r.answertext, q.charttype,count(r.attid)"+ 
-" FROM xresult r JOIN xscreen s JOIN question q ON s.screenid = r.screenid and q.screenid=s.screenid "+
-" and q.quetype=2 AND s.surveyid = "+surveyId+" "+ "GROUP BY r.screenid,r.answerid";
+		String sql ="";
+		if(district > 0){
+			sql ="SELECT s.screentext,r.screenid,r.answerid,r.answertext, q.charttype,count(r.attid), r.questionid"+
+				" FROM xresult r"+ 
+				" INNER JOIN xscreen s on s.screenid = r.screenid"+
+				" INNER JOIN question q on q.screenid=s.screenid"+
+				" INNER JOIN xattendant a on a.attendantid=r.attid"+ 
+				" and q.quetype=2 AND s.surveyid = "+session("surveyId")+" and a.mahalle="+district+
+				" GROUP BY r.screenid,r.questionid,r.answerid";
+		}else if(town == 0 && district == 0){
+			sql ="SELECT s.screentext,r.screenid,r.answerid,r.answertext, q.charttype,count(r.attid), r.questionid"+
+					" FROM xresult r"+ 
+					" INNER JOIN xscreen s on s.screenid = r.screenid"+
+					" INNER JOIN question q on q.screenid=s.screenid"+ 
+					" and q.quetype=2 AND s.surveyid = "+session("surveyId")+
+					" GROUP BY r.screenid,r.questionid,r.answerid";
+		}else{
+			System.out.println("handan"+town+" "+ district);
+		}
+		
 		ResultSet rs = st.executeQuery(sql);
 		int tempScreenId = 0;
 		int index=0;
+		int screenId= 0;
 		while(rs.next()){
-			int screenId = rs.getInt(2);
+				screenId = rs.getInt(2);
+			
 				if(screenId != tempScreenId){
 					List<AnswerJSON> alist = new LinkedList<AnswerJSON>();
 					tempScreenId = screenId;
@@ -241,6 +234,7 @@ public class Application extends Controller {
 		}
 		return list;
 	}
+
 	private static List<GeoAnswerJSON> toGeoJsonFormat(long screenId,SurveyResult[] results) {
 		List<GeoAnswerJSON> list = new LinkedList<GeoAnswerJSON>();
 		for(SurveyResult sr:results){
@@ -264,36 +258,34 @@ public class Application extends Controller {
 		ResultSet rs = st.executeQuery("select code,name from district where townid ="+ townid);
 		List<AddressJSON> l = new LinkedList<AddressJSON>();
 		while (rs.next()) {
-			if(allDistricts !=null && allDistricts.contains(rs.getInt(1))){
 				l.add(new AddressJSON(rs.getString(2), rs.getInt(1)));
-			}
 		}
 		//kayıtlı olmayan mahalle kodları
-		if(townid==surveyUndefinedTownId && allDistricts !=null && allDistricts.size()>0){
-			List<Integer> unique = new ArrayList<Integer>();
-			for(int code:allDistricts){
-				if(!unique.contains(code)){
-					AddressJSON toAdd = new AddressJSON(String.valueOf(code), code);
-					if(!l.contains(toAdd))
-						l.add(toAdd);
-					unique.add(code);
-				}
-			}
-		}
+//		if(townid==Integer.parseInt(session("surveyUndefinedTownId")) && allDistricts !=null && allDistricts.size()>0){
+//			List<Integer> unique = new ArrayList<Integer>();
+//			for(int code:allDistricts){
+//				if(!unique.contains(code)){
+//					AddressJSON toAdd = new AddressJSON(String.valueOf(code), code);
+//					if(!l.contains(toAdd))
+//						l.add(toAdd);
+//					unique.add(code);
+//				}
+//			}
+//		}
 		return ok(Json.toJson(l));
 	}
 
 	public static Result getTowns() throws SQLException {
-		if (surveyMainLocType == 2) {
+		if (Integer.parseInt(session("surveyMainLocType")) == 2) {
 			Statement st = DB.getConnection().createStatement();
-			ResultSet rs = st.executeQuery("select name from town where id ="+ surveyMainLocId);
+			ResultSet rs = st.executeQuery("select name from town where id ="+ session("surveyMainLocId"));
 			rs.next();
 			LinkedList<AddressJSON> l = new LinkedList<AddressJSON>();
-			l.add(new AddressJSON(rs.getString(1),surveyMainLocId));
+			l.add(new AddressJSON(rs.getString(1),Integer.getInteger(session("surveyMainLocId"))));
 			return ok(Json.toJson(l));
 		}
 		Statement st = DB.getConnection().createStatement();
-		ResultSet rs = st.executeQuery("select id,name from town where cityid ="+ surveyMainLocId);
+		ResultSet rs = st.executeQuery("select id,name from town where cityid ="+ session("surveyMainLocId"));
 		List<AddressJSON> l = new LinkedList<AddressJSON>();
 		while (rs.next()) {
 			l.add(new AddressJSON(rs.getString(2), rs.getInt(1)));
@@ -307,24 +299,25 @@ public class Application extends Controller {
 		if (rs == null || rs.next() == false) {
 			return ok(Json.toJson("{ \"result\":\"false\"} "));
 		} else {
-			user = username;
+			session("user", username);
 			st = DB.getConnection().createStatement();
-			rs = st.executeQuery("select s.pin,s.id,s.cp,s.locid,s.loctype,s.fromdate,s.todate,s.undefinedtownid from user u,survey s where s.usercode = u.code and u.code = '"+ user + "'");
+			rs = st.executeQuery("select s.pin,s.id,s.cp,s.locid,s.loctype,s.fromdate,s.todate,s.undefinedtownid from user u,survey s where s.usercode = u.code and u.code = '"+ session("user") + "'");
 			rs.next();
-			surveyPin = rs.getString(1);
-			surveyCP = rs.getString(3);
-			surveyMainLocId = rs.getInt(4);
-			surveyMainLocType = rs.getInt(5);
+
+			session("surveyPin",rs.getString(1));
+			session("surveyCP", rs.getString(3));
+			session("surveyMainLocId",rs.getInt(4)+"");
+			session("surveyMainLocType",rs.getInt(5)+"");
 			fromDate = rs.getDate(6);
 			toDate = rs.getDate(7);
-			surveyUndefinedTownId = rs.getInt(8); 
-			surveyId = rs.getInt(2);
+			session("surveyUndefinedTownId",""+ rs.getInt(8)); 
+			session("surveyId" ,rs.getInt(2)+"");
 			st = DB.getConnection().createStatement();
-			rs = st.executeQuery("select q.screenid from survey s, question q where q.quetype = 5 and q.surveyid = "+ surveyId);
+			rs = st.executeQuery("select q.screenid from survey s, question q where q.quetype = 5 and q.surveyId = "+ session("surveyId"));
 			rs.next();
-			filterScreenId = rs.getLong(1);
+			session("filterScreenId", ""+rs.getLong(1));
 			st = DB.getConnection().createStatement();
-			String sql = "select d.code,t.id from district d, town t where d.townid=t.id and "+(surveyMainLocType==2?"t.id =":"t.cityid =")+surveyMainLocId;
+			String sql = "select d.code,t.id from district d, town t where d.townid=t.id and "+(Integer.parseInt(session("surveyMainLocType"))==2?"t.id =":"t.cityid =")+Integer.parseInt(session("surveyMainLocId"));
 			rs = st.executeQuery(sql);
 			Map<Integer,Integer> mahalleilce = new HashMap<Integer, Integer>();
 			while (rs.next()) {

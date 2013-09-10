@@ -79,7 +79,7 @@ var we = {url:"/results/",
 					}]
 				});
 			}
-			$("#container"+j).append("<div><button screenid=\""+results[j].screenId+"\" id=\"popup"+j+"\">map</button></div>");
+			$("#container"+j).append("<div><button screenid=\""+results[j].screenId+"\" id=\"popup"+j+"\">MAP</button></div>");
 //			$('#map_canvas') $(document).bind('cbox_complete', function(){ setTimeout($.colorbox.next, 1500); });
 			$("#popup"+j).colorbox({inline:true,onOpen:function(){loadMap($(this).attr("screenid"));},onClosed:clearMap,href: $('#map_canvas')});			
 		}
@@ -244,7 +244,7 @@ function createGrid(id, result){
 		sum += t[i].y;
 	}
 	$(id).html(""); 
-	var tblRow ="<table id=\"grid\" class=\"grid\" style=\"width:400px; height:400px; overflow: auto; display:block;\"> <thead> <tr> <th>"+result.text+"</th> <th>Kisi Sayisi</th> <th>Yüzde%</th> </tr> ";
+	var tblRow ="<table id=\"grid\" class=\"grid\" style=\"width:400px; height:380px; color:#000000; overflow: auto; display:block;\"> <thead> <tr> <th>"+result.text+"</th> <th>Kisi Sayisi</th> <th>Yüzde%</th> </tr> ";
 	for(var i=0; i<t.length; i++){
 		tblRow = tblRow + "<tr style=\"width:400px; margin-left:0px; margin-right:0px; top:0px; bottom:0px\"><td class=\"td_grid\" style=\"text-align:left;\">"+t[i].name+"</td><td>"+t[i].y+"</td><td> %"+((t[i].y*100)/sum).toFixed()+"</td></tr>";
 	}

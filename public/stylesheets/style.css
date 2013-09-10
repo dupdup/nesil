@@ -1,0 +1,557 @@
+/*
+THEME NAME: Crealand
+THEME URI: http://counterpart.x10.mx/html/crealand
+DESCRIPTION: Crealand- Responsive Landing page Template
+VERSION: 1.0
+AUTHOR: <a href="http://www.wordpresstoblogger.info">Dilip Kumar</a>
+AUTHOR URI: http://www.wordpresstoblogger.info
+*/
+
+/*-----------------------------------------------------------------------------------*/
+/* GLOBAL CONTENT STYLES
+/*-----------------------------------------------------------------------------------*/
+
+body {
+	font-family:Arial,Helvetica;
+	font-size:12px;
+	color:#979797;
+	line-height:20px;
+	background:url(../images/p6.png) repeat;
+}
+
+a:link,a:visited,a:active{
+	color:#ff0024;
+	outline: 0;
+	text-decoration:none;
+}
+
+a:hover{
+	color:#000;
+}
+
+
+h1, h2, h3, h4, h5, h6 {
+	color:#555;
+	font-weight:700;
+	font-family: 'Pt Sans', sans-serif;
+}
+
+h1 {
+	font-size:38px;
+}
+
+h2 {
+	font-size:32px;
+}
+
+h3 {
+	font-size:24px;
+}
+
+h4 {
+	font-size:18px;
+}
+
+h5 {
+	font-size:16px;
+}
+
+h6 {
+	font-size:12px;
+}
+
+p {
+line-height:1.6em;
+font-size:14px;
+}
+
+.align-right { float:right; margin: 0 0 5px 10px; }
+
+.align-left { float:left; margin: 0 10px 5px 0; }
+
+
+/*-----------------------------------------------------------------------------------*/
+/* MODAL CONTENT STYLES
+/*-----------------------------------------------------------------------------------*/
+
+.login a {
+	width:80px;
+	padding:5px 10px;
+	background:#ff0024;
+	float:right;
+	color:#fff;
+	font-weight:bold;
+	font-size:12px;
+	text-align:center;
+}
+
+.register a{
+	width:110px;
+	padding:5px 10px;
+	background:#000;
+	float:right;
+	color:#fff;
+	font-weight:bold;
+	font-size:12px;
+	text-align:center;
+}
+
+.login-ico, .register-ico {padding-right:5px;}
+
+
+/*-----------------------------------------------------------------------------------*/
+/* HEADER CONTENT STYLES
+/*-----------------------------------------------------------------------------------*/
+
+#header {
+	border-top:3px solid #fe0024;
+	position:absolute;
+	left:0px;
+	right:0px;
+	z-index:11;
+}
+
+.header-wrap {overflow:visible;}
+
+.logo {
+	margin-top:-15px;
+	float:left;
+}
+
+.logo h1, .logo h1 a {
+	color:#202020;
+	font-size:25px;
+}
+
+/*-----------------------------------------------------------------------------------*/
+/* RESPONSIVE SLIDER CONTENT STYLES
+/*-----------------------------------------------------------------------------------*/
+
+.slider-wrap {background:url(../images/dark_mosaic.png) repeat;overflow:hidden;}
+
+.rsp-caption {margin-bottom:30%;}
+
+.rsp-caption h2 {
+	text-transform: none;
+	padding:1%;
+	color:#fff;
+	font-family: 'Open Sans', sans-serif;
+	font-weight:400;
+	line-height:30px;
+	font-size:25px;
+	margin-top:92%;
+}
+
+.rsp-caption p {
+	padding:20px 0 30px 0;
+	color:#fff;
+	font-family: 'Helvetica', sans-serif;
+	font-weight:100;
+	line-height:20px;
+	font-size:14px;
+}
+
+.app-ico {margin-top:20px;}
+
+.app-ico span {
+	float:left;
+	margin:0 12px 0 0;
+	width:32px;
+	height:32px;
+	-webkit-transition:all 0.5s ease-in-out;  
+	-moz-transition:all 0.5s ease-in-out;  
+	-o-transition:all 0.5s ease-in-out;  
+	transition:all 0.5s ease-in-out; 
+}
+
+.app-ico span img:hover {opacity:0.4;filter: alpha(opacity = 40);}
+
+/*-----------------------------------------------------------------------------------*/
+/* OTHER CONTENT STYLES
+/*-----------------------------------------------------------------------------------*/
+
+.space10 {height:10px;}
+.space20 {height:20px;}
+.space30 {height:30px;}
+.space40 {height:40px;}
+.space50 {height:50px;}
+.space60 {height:60px;}
+.space70 {height:70px;}
+
+/*-----------------------------------------------------------------------------------*/
+/* MAIN CONTENT STYLES
+/*-----------------------------------------------------------------------------------*/
+
+.wrap {
+	position: relative;
+}
+
+.video {
+	position: relative;
+	padding-bottom: 56.25%;
+	height: 0;
+	overflow: hidden;
+	margin: 0 auto -20px auto;
+	width:80%;
+}
+
+.video iframe,
+.video object,  
+.video embed {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right:0;
+	width: 100%;
+	height: 82%;
+	margin: 0 auto;
+}
+
+/*-----------------------------------------------------------------------------------*/
+/* FEATURES CONTENT STYLES
+/*-----------------------------------------------------------------------------------*/
+
+.features-wrap {overflow: hidden;}
+
+.features-content {
+	padding:20px 10px 0 10px;
+	text-align:center;
+}
+
+.features-content:hover {cursor:pointer;}
+
+.features-icon {
+	position: relative;
+	border:none;
+	margin-bottom:25px;
+	font-size:30px;
+	text-align:center;
+}
+
+.features-content:hover h5 {color:#ff0024;}
+.features-content:hover .foundicon1-people,
+.features-content:hover .foundicon1-heart,
+.features-content:hover .foundicon1-globe {
+	color:#ff0024 !important;
+}
+
+.features-description{
+	font-weight:400;
+	line-height:20px;
+}
+
+.features-description h5{
+	font-size:17px;
+}
+
+.features-description p{
+	padding:5px 0 10px 0;
+	font-size:12px;
+	font-family:Helvetica,Arial;
+}
+
+/*-----------------------------------------------------------------------------------*/
+/* WRAP2 CONTENT STYLES
+/*-----------------------------------------------------------------------------------*/
+
+.wrap2 {text-align:center;}
+
+.wrap2 h2{font-size:24px;}
+
+.app-ico2 {margin-top:20px;}
+
+.app-ico2 span {
+	text-align:center;
+	margin:0 12px 0 0;
+	width:32px;
+	height:32px;
+	-webkit-transition:all 0.5s ease-in-out;  
+	-moz-transition:all 0.5s ease-in-out;  
+	-o-transition:all 0.5s ease-in-out;  
+	transition:all 0.5s ease-in-out; 
+}
+
+.app-ico2 span img:hover {opacity:0.5;filter: alpha(opacity = 50);}
+
+/*-----------------------------------------------------------------------------------*/
+/* FOOTER CONTENT STYLES
+/*-----------------------------------------------------------------------------------*/
+
+.footer {
+	padding:20px 0;
+	border-top:1px solid #d5d5d5;
+}
+
+.footer p {
+	color:#828282;
+	text-align:center;
+	font-size:13px;
+}
+
+/*-----------------------------------------------------------------------------------*/
+/* FOOTER CONTENT - SOCIAL STYLES
+/*-----------------------------------------------------------------------------------*/
+
+.social {
+	width:176px;
+	margin: 0 auto;
+}
+
+ul.social-networks {
+	overflow:hidden;
+}
+
+ul.social-networks li {
+	float:left;
+	margin:8px 2px 0 2px;
+	border:none;
+}
+
+.icon-twitter a,
+.icon-facebook a,
+.icon-flickr a,
+.icon-dribbble a {
+	float:left;
+	background:url(../../images/social-sprite.png) no-repeat left bottom;
+	text-indent:8000px;
+	width:40px;
+	height:40px;
+	-webkit-transition:all 0.3s ease-in-out;  
+	-moz-transition:all 0.3s ease-in-out;  
+	-o-transition:all 0.3s ease-in-out;  
+	transition:all 0.3s ease-in-out; 
+}
+
+.icon-twitter a:hover,
+.icon-facebook a:hover,
+.icon-flickr a:hover,
+.icon-dribbble a:hover {
+	background:url(../../images/social-sprite.png) no-repeat left top;
+	-webkit-transition:all 0.3s ease-in-out;  
+	-moz-transition:all 0.3s ease-in-out;  
+	-o-transition:all 0.3s ease-in-out;  
+	transition:all 0.3s ease-in-out; 
+}
+
+.icon-twitter, .icon-twitter a {background-position:-0px top;}
+.icon-twitter a:hover {background-position:-0px bottom;}
+
+.icon-facebook, .icon-facebook a {background-position:-40px top;}
+.icon-facebook a:hover {background-position:-40px bottom;}
+
+.icon-dribbble, .icon-dribbble a {background-position:-80px top;}
+.icon-dribbble a:hover {background-position:-80px bottom;}
+
+.icon-flickr, .icon-flickr a {background-position:-120px top;}
+.icon-flickr a:hover {background-position:-120px bottom;}
+
+/*-----------------------------------------------------------------------------------*/
+/* TWITTER FEED CONTENT STYLES
+/*-----------------------------------------------------------------------------------*/
+
+.twitter-feed {
+	padding:0px;
+	position:relative;
+	display:block;
+	width:100%;	
+	min-height:80px;
+	text-align:center;
+}
+
+ul#twitter_update_list {
+	margin:0px;
+	padding:0px 35px;
+	list-style:none;
+}
+
+ul#twitter_update_list li {
+	padding:0px 0px 5px 0px;
+	margin:0px;
+	display:none;
+}
+
+.twitter-feed span {
+	font-size:13px;
+	color:#929292;
+	display:block;
+	line-height:1.3em;
+}
+
+.twitter-feed span a {
+	color:#00aeef;
+	text-decoration:none;
+}
+
+.twitter-feed span a:hover {
+	color:#00aeef;
+	border-bottom:1px dotted #00aeef;
+}
+
+.twitter-feed a {
+	color:#777;
+	text-decoration:none;
+}
+
+.twitter-feed a:hover {
+	color:#AAA;
+	text-decoration:none;
+}
+
+/*-----------------------------------------------------------------------------------*/
+/* INTRO CONTENT STYLES
+/*-----------------------------------------------------------------------------------*/
+
+#intro {background:#000 url(../../images/intro-bg.png);padding:70px 0;}
+.intro-image, .intro-video  {padding:10px;}
+.intro-image img, .intro-video img {max-width:100%;height:auto;display:table;margin: 0 auto;}
+
+/* #Tablet (Portrait)
+================================================== */
+/* Note: Design for a width of 768px */
+
+@media only screen and (min-width: 768px) and (max-width: 959px) {
+
+.logo img {
+	width:80%;
+	height:auto;
+}
+
+.rsp-caption h2 {font-size: 140%;margin-top:85%;}
+
+.slider-wrap {
+	padding-top:0px;
+}
+
+.video {
+	margin: 0 auto -20px auto;
+	width:80%;
+}
+
+.video iframe,
+.video object,  
+.video embed {
+	width: 100%;
+	height: 82%;
+}
+
+}
+
+
+/*  #Mobile (Portrait)
+================================================== */
+
+/* Note: Design for a width of 320px */
+@media only screen and (max-width: 767px) {
+
+.logo img {
+	width:60%;
+	height:auto;
+}
+
+.rsp-caption, .rsp-caption h2, .rsp-caption p {display:none;}
+
+.slider-wrap {
+	padding-top:80px;
+}
+
+.wrap2 h2 {	font-size:20px;}
+
+.twitter-feed {
+	min-height:120px;
+}
+
+.video {
+	margin: 0 auto 40px auto;
+	width:100%;
+}
+
+.video iframe,
+.video object,  
+.video embed {
+	width: 100%;
+	height: 100%;
+}
+
+.login a {
+	width:50px;
+	height:30px;
+	overflow:hidden;
+
+}
+
+.register a{
+	width:50px;
+	height:30px;
+	overflow:hidden;
+}
+
+   }
+
+
+/* #Mobile (Landscape)
+================================================== */
+
+/* Note: Design for a width of 480px */
+@media only screen and (min-width: 480px) and (max-width: 767px) {
+
+.rsp-caption, .rsp-caption h2, .rsp-caption p {display:none;}
+
+.video {
+	margin: 0 auto 20px auto;
+	width:80%;
+}
+
+.video iframe,
+.video object,  
+.video embed {
+	width: 100%;
+	height: 80%;
+}
+
+.login a {
+	width:80px;
+	height:auto;
+
+}
+
+.register a{
+	width:110px;
+	height:auto;
+}
+
+
+}
+
+
+.panel.aghizmeti {
+    margin-top: -30px;
+	text-align:center;
+}
+
+.ui-tabs-vertical { }
+  .ui-tabs-vertical .ui-tabs-nav { padding: .2em .1em .2em .2em; float: left; width: 20%; background:none; border:none; }
+  .ui-tabs-vertical .ui-tabs-nav li { clear: left; width: 100%; border-bottom-width: 1px; border-right-width: 1px; margin: 0 1px .2em 0; }
+  .ui-tabs-vertical .ui-tabs-nav li a { display:block; }
+  .ui-tabs-vertical .ui-tabs-nav li.ui-tabs-active { padding-bottom: 0; padding-right: .1em; border-width: 3px; border-right-width: 0 !important; margin-bottom:0 !important;}
+  .ui-tabs-vertical .ui-tabs-panel { padding: 1em; float: right; width: 75%; border-left: 3px solid #EDEDED !important;
+    float: left;
+    margin-left: -6px;}
+  
+  #tabs {
+    margin: 150px auto 0;
+}
+
+.bgopacity50 {background:url(../../images/opacity.png) repeat;
+	}
+.twelveone {
+	/*position:absolute;
+	left:0;
+	bottom:0;*/
+	padding:0 20px;
+	}
+.space200 {
+	height:200px;}
+.secondtitle {
+	color:#fff;
+	margin-top:100px;
+	}
