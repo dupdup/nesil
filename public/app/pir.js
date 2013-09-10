@@ -80,8 +80,7 @@ var we = {url:"/results/",
 				});
 			}
 			$("#container"+j).append("<div><button screenid=\""+results[j].screenId+"\" id=\"popup"+j+"\">MAP</button></div>");
-//			$('#map_canvas') $(document).bind('cbox_complete', function(){ setTimeout($.colorbox.next, 1500); });
-			$("#popup"+j).colorbox({inline:true,onOpen:function(){loadMap($(this).attr("screenid"));},onClosed:clearMap,href: $('#map_canvas')});			
+			$("#popup"+j).colorbox({html:'<div id="map_canvas" style="width: 800px; height:600px;"></div>',onOpen:function(){loadMap($(this).attr("screenid"));},onClosed:clearMap});
 		}
 	}};
 we.url="/results/0/0";
@@ -126,28 +125,41 @@ $.ajax({url:"/area",async:false,success:function(res){
 }});
 }
 function clearMap(){
-//	$('#map_canvas').hide();
+mgr.clearMarkers();
+mapg=0;
+mgr=0;
+$('#map_canvas').remove();
 }
+var mgr;
+var mapg;
 function loadMap(screenid){
-	var x = $("#map_canvas").gmap('get', 'markers')
-	$.each(x,function(i,a){a.setMap(null);});
 	$.ajax({url:"/georesults/"+screenid,success:function(res){
-		if(x.length<2){
-			console.log("onc");
-			$('#map_canvas').gmap({'zoom': 15,'center':res[1].lat+","+res[1].lng}).bind('init', function(evt, map) {
-				console.log("once");
-				addMarkers(res)
-			//			$('#map_canvas').gmap('set', 'MarkerClusterer', new MarkerClusterer(map, $(this).gmap('get', 'markers')));
-				});}
-		else 
-			addMarkers(res);
+			$('#map_canvas').gmap({zoom: 10,center:res[1].lat+","+res[1].lng})
+			.bind('init', function(evt, map) {
+				mapg = map;
+				addMarkers(res);
+				});
 	}});
+}
+function shuffleArray(array) {
+    for (var i = array.length - 1; i > 0; i--) {
+        var j = Math.floor(Math.random() * (i + 1));
+        var temp = array[i];
+        array[i] = array[j];
+        array[j] = temp;
+    }
+    return array;
 }
 function addMarkers(rt){
 	var clrs =['aqua','blue','crimson','blueviolet','yellow','GreenYellow','Magenta','Azure']
 	var ra = [];
+	mgr = new MarkerManager(mapg);
+	var markers1=[];
+	var markers2=[];
+	var markers3=[];
+	var markers4=[];
+	rt = shuffleArray(rt);
 	$.each(rt,function(i,r){
-//		var newIcon = MapIconMaker.createFlatIcon({width: 64, height: 64, primaryColor: "#00ff00"});
 		var ri = $.inArray(r.answer.code, ra);
 		if(ri<0){
 			ri = ra.push(r.answer.code)-1;
@@ -163,11 +175,21 @@ function addMarkers(rt){
 				fillColor:clrs[ri%clrs.length],
 				strokeColor:clrs[ri%clrs.length]
 		};
-		$('#map_canvas').gmap('addMarker', { 
-			'position': new google.maps.LatLng(r.lat,r.lng),icon:goldStar,title:r.answer.text
-		});
+		var marker = new google.maps.Marker({position: new google.maps.LatLng(r.lat,r.lng),icon:goldStar,title:r.answer.text})
+		if(i<800)
+			markers1.push(marker);
+		else if(i<2000)
+			markers2.push(marker);
+		else if(i<15000)
+			markers4.push(marker);
 	});
-	
+	google.maps.event.addListener(mgr, 'loaded', function(){
+		console.log("markers added");
+		mgr.addMarkers(markers1,5);
+		mgr.addMarkers(markers2,11);
+		mgr.addMarkers(markers4,15);
+		mgr.refresh();
+	});
 }
 
 function createBar(id, result){
