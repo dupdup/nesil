@@ -33,6 +33,9 @@ public class GeoAnswerJSON {
 		this.att = att;
 		this.answer = answer;
 	}
+	public GeoAnswerJSON() {
+		// TODO Auto-generated constructor stub
+	}
 	public AnswerJSON getAnswer() {
 		return answer;
 	}

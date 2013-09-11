@@ -42,9 +42,6 @@ import com.isurveysoft.www.servicesv5.Survey;
 import com.isurveysoft.www.servicesv5.SurveyResult;
 
 public class Application extends Controller {
-//	private static Map<Long, Integer> chartQuestions = new HashMap<Long, Integer>();
-//	private static Map<Long, Integer> descQuestions = new HashMap<Long, Integer>();
-	private static List<Integer> allDistricts = java.util.Collections.synchronizedList(new ArrayList<Integer>());
 	private static Date fromDate;
 	private static Date toDate;
 
@@ -164,16 +161,18 @@ public class Application extends Controller {
 	}
 
 
-	public static Result geoResults(long screenId) throws RemoteException, ServiceException {
-		ExportService service = new ExportServiceLocator();
-		@SuppressWarnings("unchecked")
-		List<GeoAnswerJSON> cached = (List<GeoAnswerJSON>) Cache.get(session("user")+ "geo" + screenId);
-		if (cached == null || cached.size() < 1) {
-			SurveyResult[] results = service.getExportServiceSoap().exportSurveyResults(session("surveyCP"), session("surveyPin"),fromDate.toString(), toDate.toString(), 0l);
-			cached = toGeoJsonFormat(screenId, results);
-			Cache.set(session("user") + "geo" + screenId, cached);
+	public static Result geoResults(long screenId) throws RemoteException, ServiceException, SQLException {
+		List<GeoAnswerJSON> l = new LinkedList<GeoAnswerJSON>();
+		Statement st = DB.getConnection().createStatement();
+		ResultSet rs = st.executeQuery("SELECT a.lat,a.lng,r.answerid,r.answertext FROM xresult r,xattendant a where r.attid = a.attendantid and r.screenid="+screenId);
+		while(rs.next()){
+			GeoAnswerJSON geo = new GeoAnswerJSON();
+			geo.setLat(rs.getString(1));
+			geo.setLng(rs.getString(2));
+			geo.setAnswer(new AnswerJSON(rs.getString(4), rs.getLong(3), 0));
+			l.add(geo);
 		}
-		return ok(Json.toJson(cached));
+		return ok(Json.toJson(l));
 	}
 	public static Result resultsx(int town, int district) throws SQLException{
 		return ok(Json.toJson(fromDB(town, district)));
@@ -266,21 +265,7 @@ public class Application extends Controller {
 		return list;
 	}
 
-	private static List<GeoAnswerJSON> toGeoJsonFormat(long screenId,SurveyResult[] results) {
-		List<GeoAnswerJSON> list = new LinkedList<GeoAnswerJSON>();
-		for(SurveyResult sr:results){
-			for(com.isurveysoft.www.servicesv5.Result res : sr.getScreenResults()){
-				if(res.getScreenId()==screenId&&res.getAnswerId()!=null&&sr.getResultLocationLatitude()!=0&&sr.getResultLocationLongitude()!=0){
-					list.add(new GeoAnswerJSON(sr.getResultLocationLatitude()+"",
-							sr.getResultLocationLongitude()+"",sr.getResultLocationAltitude()+"",new AnswerJSON(res.getResultAnswer(),res.getAnswerId(),1)));
-				}
-			}
-		}
-		return list;
-	}
-
 	public static Result nesil(String userId) throws SQLException {
-
 		return survey();
 	}
 
