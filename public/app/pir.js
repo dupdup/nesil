@@ -3,6 +3,10 @@ $(function () {
 	$('#login').hide();
 	$('#header-photo').show();
 	$('#wrap').show();
+	$.ajax({url:"/title",success:function(resx){
+		$('#title').text(resx.split("_")[0]);
+		$('#username').text(resx.split("_")[1]);
+	}});
 });
 
 function init(){
@@ -15,10 +19,16 @@ var we = {url:"/results/",
 		chartCount = results.length;
 		$("#container").html(""); 
 		var divList = "";
-
+		var c=1;
 		for(var i=0; i<chartCount; i++){ 
-			var tblRow ="<div id=\"container"+i+"\" class=\"page-chart\" style=\"margin: 0 auto; float: left\"></div>"
-			divList += tblRow; 
+			var tblRow ="";
+			if(c==1){tblRow += "<tr>";}
+			tblRow +="<td id=\"container"+i+"\" class=\"page-chart\" style=\"margin: 0 auto; float: left\"></td>"
+			if(i==chartCount-1){
+				tblRow +="</tr>";
+			}else if(c%3==0){tblRow +="</tr><tr>";}
+			divList += tblRow;
+			c++;
 			$("#container").html(divList);
 		}
 		for(var j=0 ; j<chartCount; j++){

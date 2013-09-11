@@ -189,7 +189,7 @@ public class Application extends Controller {
 				" INNER JOIN question q on q.screenid=s.screenid"+
 				" INNER JOIN xattendant a on a.attendantid=r.attid"+ 
 				" and q.quetype=2 AND s.surveyid = "+session("surveyId")+" and a.mahalle="+district+
-				" GROUP BY r.screenid,r.questionid,r.answerid";
+				" and r.answertext!='' GROUP BY r.screenid,r.questionid,r.answerid";
 		}else if(town == 0 && district == 0){
 			sql ="SELECT s.screentext,r.screenid,r.answerid,r.answertext, q.charttype,count(r.attid), r.questionid"+
 					" FROM xresult r"+ 
@@ -205,32 +205,63 @@ public class Application extends Controller {
 		int tempScreenId = 0;
 		int index=0;
 		int screenId= 0;
+		int tempqid=0;
+		List<QuestionJSON> qlist = new LinkedList<QuestionJSON>();
 		while(rs.next()){
+			QuestionJSON q = new QuestionJSON();
 				screenId = rs.getInt(2);
-			
+				
 				if(screenId != tempScreenId){
 					List<AnswerJSON> alist = new LinkedList<AnswerJSON>();
 					tempScreenId = screenId;
-					QuestionJSON q = new QuestionJSON();
+					tempqid = rs.getInt(7);
 					q.setScreenId(rs.getInt(2));
 					q.setText(rs.getString(1));
 					q.setType(rs.getInt(5));
 					AnswerJSON ans = new AnswerJSON();
 					ans.setCode(rs.getInt(3));
-					ans.setText(rs.getString(4).trim().length()<2?"Cevap Yok":rs.getString(4));
+					ans.setText(rs.getString(4).trim().length()<2?"Cevap Verilmemiş":rs.getString(4));
 					ans.setCount(rs.getInt(6));
-					alist.add(ans);
-					q.setAnswer(alist);
 					list.add(q);
 					index = list.indexOf(q);
+					alist.add(ans);
+					q.setAnswer(alist);
 				}else{
-					AnswerJSON ans = new AnswerJSON();
-					ans.setCode(rs.getInt(3));
-					ans.setText(rs.getString(4).trim().length()<2?"Cevap Yok":rs.getString(4));
-					ans.setCount(rs.getInt(6));
-					list.get(index).getAnswer().add(ans);
-					tempScreenId = screenId;
+					if(tempqid != rs.getInt(7)){
+						List<AnswerJSON> alist = new LinkedList<AnswerJSON>();
+						q.setScreenId(rs.getInt(7));
+						q.setText(rs.getString(1));
+						q.setType(rs.getInt(5));
+						AnswerJSON ans = new AnswerJSON();
+						ans.setCode(rs.getInt(3));
+						ans.setText(rs.getString(4).trim().length()<2?"Cevap Verilmemiş":rs.getString(4));
+						ans.setCount(rs.getInt(6));
+						alist.add(ans);
+						q.setAnswer(alist);
+						list.add(q);
+						index = list.indexOf(q);
+						tempqid = rs.getInt(7);
+						qlist.add(q);
+					}else{
+						AnswerJSON ans = new AnswerJSON();
+						ans.setCode(rs.getInt(3));
+						ans.setText(rs.getString(4).trim().length()<2?"Cevap Verilmemiş":rs.getString(4));
+						ans.setCount(rs.getInt(6));
+						list.get(index).getAnswer().add(ans);
+						tempScreenId = screenId;
+						tempqid = rs.getInt(7);
+					}
 				}
+		}
+		String sql1 = "select screentext from xscreen where screenid in (";
+		for(QuestionJSON qj:qlist){
+			sql1+=qj.getScreenId()+",";
+		}
+		rs = st.executeQuery(sql1.substring(0, sql1.length()-1)+")");
+		int i=0;
+		while(rs.next()){
+			qlist.get(i).setText(rs.getString(1));
+			i++;
 		}
 		return list;
 	}
@@ -301,13 +332,14 @@ public class Application extends Controller {
 		} else {
 			session("user", username);
 			st = DB.getConnection().createStatement();
-			rs = st.executeQuery("select s.pin,s.id,s.cp,s.locid,s.loctype,s.fromdate,s.todate,s.undefinedtownid from user u,survey s where s.usercode = u.code and u.code = '"+ session("user") + "'");
+			rs = st.executeQuery("select s.pin,s.id,s.cp,s.locid,s.loctype,s.fromdate,s.todate,s.undefinedtownid, s.title from user u,survey s where s.usercode = u.code and u.code = '"+ session("user") + "'");
 			rs.next();
 
 			session("surveyPin",rs.getString(1));
 			session("surveyCP", rs.getString(3));
 			session("surveyMainLocId",rs.getInt(4)+"");
 			session("surveyMainLocType",rs.getInt(5)+"");
+			session("surveyTitle",rs.getString(9));
 			fromDate = rs.getDate(6);
 			toDate = rs.getDate(7);
 			session("surveyUndefinedTownId",""+ rs.getInt(8)); 
@@ -327,5 +359,10 @@ public class Application extends Controller {
 			return ok(views.html.index.render("doruk"));
 		}
 	}
+	
+	public static Result getSurveyTitle() {
+		return ok(Json.toJson((session("surveyTitle")) + "_" + (session("user"))));
+		//return ok(Json.toJson(Json.parse(" \"title\":\""+session("surveyTitle")+"\", \"user\":\""+session("user")+"\"")));
+	}	
 
 }

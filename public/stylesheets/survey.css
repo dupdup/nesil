@@ -349,8 +349,8 @@ button {
 	-webkit-box-shadow:rgba(0,0,0,0.2) 0 1px 0 0;
 	-moz-box-shadow:rgba(0,0,0,0.2) 0 1px 0 0;
 	box-shadow:rgba(0,0,0,0.2) 0 1px 0 0;
-	color:#333;
-	background-color:#DB704D;
+	color:#ffffff;
+	background-color:#0B0B3B;
 	border-radius:5px;
 	-moz-border-radius:5px;
 	-webkit-border-radius:5px;
@@ -360,7 +360,7 @@ button {
 	font-weight:700;
 	height:32px;
 	padding:4px 16px;
-	text-shadow:#FE6 0 1px 0;
+	text-shadow:#58D3F7 0 1px 0;
 	cursor:pointer;
 	width:400px;
 }
