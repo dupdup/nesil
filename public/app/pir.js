@@ -13,7 +13,7 @@ function init(){
 
 var we = {url:"/results/",
 		beforeSend: function() {
-		    $('#container').html("<img src='/assets/images/loading.gif' />");
+		    $('#container').html("<tr><td><img src='/assets/images/loading.gif'style=\"margin: 0 auto 0 auto;\"/></td></tr>");
 		  },
 		success:function(results){
 		chartCount = results.length;
@@ -26,7 +26,7 @@ var we = {url:"/results/",
 			tblRow +="<td id=\"container"+i+"\" class=\"page-chart\" style=\"margin: 0 auto; float: left\"></td>"
 			if(i==chartCount-1){
 				tblRow +="</tr>";
-			}else if(c%3==0){tblRow +="</tr><tr>";}
+			}else if(c%2==0){tblRow +="</tr><tr>";}
 			divList += tblRow;
 			c++;
 			$("#container").html(divList);
@@ -42,7 +42,7 @@ var we = {url:"/results/",
 			});
 
 			if(results[j].type == 2){
-				if(results[j].answer.length >7){
+				if(results[j].answer.length >5){
 					createGrid(id, results[j]);
 				}else{createBar(id, results[j]);}
 			}
@@ -58,8 +58,8 @@ var we = {url:"/results/",
 						marginLeft:1,
 						marginTop:5,
 						marginBottom:1,
-						width: 400,
-						height: 400,
+						width: 500,
+						height: 450,
 						borderRadius:15
 					},
 					title: {
@@ -89,7 +89,7 @@ var we = {url:"/results/",
 					}]
 				});
 			}
-			$("#container"+j).append("<div><button screenid=\""+results[j].screenId+"\" id=\"popup"+j+"\">MAP</button></div>");
+			$("#container"+j).append("<div><button style=\"width: 500px;\" screenid=\""+results[j].screenId+"\" id=\"popup"+j+"\">HARİTADA GÖSTER</button></div>");
 			$("#popup"+j).colorbox({html:'<div id="map_canvas" style="width: 800px; height:600px;"></div>',onOpen:function(){loadMap($(this).attr("screenid"));},onClosed:clearMap});
 		}
 	}};
@@ -129,9 +129,9 @@ $.ajax({url:"/area",async:false,success:function(res){
 		var x =$('<option>').val(n.code).text(n.text);
 		x.appendTo('#towncombo');
 	});
-	if(res.length==1){
+	/*if(res.length==1){
 		$("#towncombo").select2('val',res[0].code);
-	}
+	}*/
 }});
 }
 function clearMap(){
@@ -161,7 +161,7 @@ function shuffleArray(array) {
     return array;
 }
 function addMarkers(rt){
-	var clrs =['aqua','blue','crimson','blueviolet','yellow','GreenYellow','Magenta','Azure']
+	var clrs =['aqua','blue','crimson','blueviolet','yellow','GreenYellow','Magenta','Azure','Gold','LightBlue','LightCoral','LightCyan','LightGoldenRodYellow','LightGray','LightGreen','LightPink','LightSalmon','LightSeaGreen','LightSkyBlue','LightSlateGray','LightSteelBlue','LightYellow']
 	var ra = [];
 	mgr = new MarkerManager(mapg);
 	var markers1=[];
@@ -186,9 +186,9 @@ function addMarkers(rt){
 				strokeColor:clrs[ri%clrs.length]
 		};
 		var marker = new google.maps.Marker({position: new google.maps.LatLng(r.lat,r.lng),icon:goldStar,title:r.answer.text})
-		if(i<800)
+		if(i<400)
 			markers1.push(marker);
-		else if(i<2000)
+		else if(i<1000)
 			markers2.push(marker);
 		else if(i<15000)
 			markers4.push(marker);
@@ -212,8 +212,8 @@ function createBar(id, result){
 	$(id).highcharts({
 		chart: {
 			type: 'column',
-			width: 400,
-			height: 400
+			width: 500,
+			height: 450
 		},
 		title: {
 			text: result.text
@@ -276,9 +276,9 @@ function createGrid(id, result){
 		sum += t[i].y;
 	}
 	$(id).html(""); 
-	var tblRow ="<table id=\"grid\" class=\"grid\" style=\"width:400px; height:380px; color:#000000; overflow: auto; display:block;\"> <thead> <tr> <th>"+result.text+"</th> <th>Kisi Sayisi</th> <th>Yüzde%</th> </tr> ";
+	var tblRow ="<table id=\"grid\" class=\"grid\" style=\"width:500px; height:430px; color:#000000; overflow: auto; display:block;\"> <thead> <tr> <th>"+result.text+"</th> <th>Kisi Sayisi</th> <th>Yüzde%</th> </tr> ";
 	for(var i=0; i<t.length; i++){
-		tblRow = tblRow + "<tr style=\"width:400px; margin-left:0px; margin-right:0px; top:0px; bottom:0px\"><td class=\"td_grid\" style=\"text-align:left;\">"+t[i].name+"</td><td>"+t[i].y+"</td><td> %"+((t[i].y*100)/sum).toFixed()+"</td></tr>";
+		tblRow = tblRow + "<tr style=\"width:500px; margin-left:0px; margin-right:0px; top:0px; bottom:0px\"><td class=\"td_grid\" style=\"text-align:left;\">"+t[i].name+"</td><td>"+t[i].y+"</td><td> %"+((t[i].y*100)/sum).toFixed()+"</td></tr>";
 	}
 	+"</thead> </table>";
 
